@@ -1,0 +1,254 @@
+---
+title: "NBA Teams"
+subtitle: "Browse every NBA team covered on Classroom to Court"
+---
+
+```{=html}
+<div class="teams-toolbar">
+  <input type="text" class="teams-search" id="teamSearch" placeholder="Search NBA teams…" aria-label="Search NBA teams">
+</div>
+
+<p><a href="nbastatsandwinpct.html">See NBA Stats &amp; Win % →</a></p>
+
+<h2 class="division-heading">Eastern Conference · Atlantic</h2>
+<div class="team-grid">
+
+  <a class="team-card" data-name="boston celtics" href="nba/boston-celtics/index.html">
+    <div class="team-badge" style="background:#007A33; color:#ffffff;">BOS</div>
+    <span class="team-name">Boston Celtics</span>
+    <span class="team-meta">Atlantic</span>
+  </a>
+
+  <a class="team-card" data-name="brooklyn nets" href="nba/brooklyn-nets/index.html">
+    <div class="team-badge" style="background:#000000; color:#ffffff;">BKN</div>
+    <span class="team-name">Brooklyn Nets</span>
+    <span class="team-meta">Atlantic</span>
+  </a>
+
+  <a class="team-card" data-name="new york knicks" href="nba/new-york-knicks/index.html">
+    <div class="team-badge" style="background:#006BB6; color:#ffffff;">NYK</div>
+    <span class="team-name">New York Knicks</span>
+    <span class="team-meta">Atlantic</span>
+  </a>
+
+  <a class="team-card" data-name="philadelphia 76ers sixers" href="nba/philadelphia-76ers/index.html">
+    <div class="team-badge" style="background:#006BB6; color:#ffffff;">PHI</div>
+    <span class="team-name">Philadelphia 76ers</span>
+    <span class="team-meta">Atlantic</span>
+  </a>
+
+  <a class="team-card" data-name="toronto raptors" href="nba/toronto-raptors/index.html">
+    <div class="team-badge" style="background:#CE1141; color:#ffffff;">TOR</div>
+    <span class="team-name">Toronto Raptors</span>
+    <span class="team-meta">Atlantic</span>
+  </a>
+
+</div>
+
+<h2 class="division-heading">Eastern Conference · Central</h2>
+<div class="team-grid">
+
+  <a class="team-card" data-name="chicago bulls" href="nba/chicago-bulls/index.html">
+    <div class="team-badge" style="background:#CE1141; color:#ffffff;">CHI</div>
+    <span class="team-name">Chicago Bulls</span>
+    <span class="team-meta">Central</span>
+  </a>
+
+  <a class="team-card" data-name="cleveland cavaliers" href="nba/cleveland-cavaliers/index.html">
+    <div class="team-badge" style="background:#860038; color:#ffffff;">CLE</div>
+    <span class="team-name">Cleveland Cavaliers</span>
+    <span class="team-meta">Central</span>
+  </a>
+
+  <a class="team-card" data-name="detroit pistons" href="nba/detroit-pistons/index.html">
+    <div class="team-badge" style="background:#C8102E; color:#ffffff;">DET</div>
+    <span class="team-name">Detroit Pistons</span>
+    <span class="team-meta">Central</span>
+  </a>
+
+  <a class="team-card" data-name="indiana pacers" href="nba/indiana-pacers/index.html">
+    <div class="team-badge" style="background:#002D62; color:#ffffff;">IND</div>
+    <span class="team-name">Indiana Pacers</span>
+    <span class="team-meta">Central</span>
+  </a>
+
+  <a class="team-card" data-name="milwaukee bucks" href="nba/milwaukee-bucks/index.html">
+    <div class="team-badge" style="background:#00471B; color:#ffffff;">MIL</div>
+    <span class="team-name">Milwaukee Bucks</span>
+    <span class="team-meta">Central</span>
+  </a>
+
+</div>
+
+<h2 class="division-heading">Eastern Conference · Southeast</h2>
+<div class="team-grid">
+
+  <a class="team-card" data-name="atlanta hawks" href="nba/atlanta-hawks/index.html">
+    <div class="team-badge" style="background:#C1D32F; color:#000000;">ATL</div>
+    <span class="team-name">Atlanta Hawks</span>
+    <span class="team-meta">Southeast</span>
+  </a>
+
+  <a class="team-card" data-name="charlotte hornets" href="nba/charlotte-hornets/index.html">
+    <div class="team-badge" style="background:#1D1160; color:#ffffff;">CHA</div>
+    <span class="team-name">Charlotte Hornets</span>
+    <span class="team-meta">Southeast</span>
+  </a>
+
+  <a class="team-card" data-name="miami heat" href="nba/miami-heat/index.html">
+    <div class="team-badge" style="background:#98002E; color:#ffffff;">MIA</div>
+    <span class="team-name">Miami Heat</span>
+    <span class="team-meta">Southeast</span>
+  </a>
+
+  <a class="team-card" data-name="orlando magic" href="nba/orlando-magic/index.html">
+    <div class="team-badge" style="background:#0077C0; color:#ffffff;">ORL</div>
+    <span class="team-name">Orlando Magic</span>
+    <span class="team-meta">Southeast</span>
+  </a>
+
+  <a class="team-card" data-name="washington wizards" href="nba/washington-wizards/index.html">
+    <div class="team-badge" style="background:#002B5C; color:#ffffff;">WAS</div>
+    <span class="team-name">Washington Wizards</span>
+    <span class="team-meta">Southeast</span>
+  </a>
+
+</div>
+
+<h2 class="division-heading">Western Conference · Northwest</h2>
+<div class="team-grid">
+
+  <a class="team-card" data-name="denver nuggets" href="nba/denver-nuggets/index.html">
+    <div class="team-badge" style="background:#0E2240; color:#FEC524;">DEN</div>
+    <span class="team-name">Denver Nuggets</span>
+    <span class="team-meta">Northwest</span>
+  </a>
+
+  <a class="team-card" data-name="minnesota timberwolves" href="nba/minnesota-timberwolves/index.html">
+    <div class="team-badge" style="background:#0C2340; color:#ffffff;">MIN</div>
+    <span class="team-name">Minnesota Timberwolves</span>
+    <span class="team-meta">Northwest</span>
+  </a>
+
+  <a class="team-card" data-name="oklahoma city thunder" href="nba/oklahoma-city-thunder/index.html">
+    <div class="team-badge" style="background:#007AC1; color:#ffffff;">OKC</div>
+    <span class="team-name">Oklahoma City Thunder</span>
+    <span class="team-meta">Northwest</span>
+  </a>
+
+  <a class="team-card" data-name="portland trail blazers" href="nba/portland-trail-blazers/index.html">
+    <div class="team-badge" style="background:#E03A3E; color:#ffffff;">POR</div>
+    <span class="team-name">Portland Trail Blazers</span>
+    <span class="team-meta">Northwest</span>
+  </a>
+
+  <a class="team-card" data-name="utah jazz" href="nba/utah-jazz/index.html">
+    <div class="team-badge" style="background:#002B5C; color:#ffffff;">UTA</div>
+    <span class="team-name">Utah Jazz</span>
+    <span class="team-meta">Northwest</span>
+  </a>
+
+</div>
+
+<h2 class="division-heading">Western Conference · Pacific</h2>
+<div class="team-grid">
+
+  <a class="team-card" data-name="golden state warriors" href="nba/golden-state-warriors/index.html">
+    <div class="team-badge" style="background:#1D428A; color:#FFC72C;">GSW</div>
+    <span class="team-name">Golden State Warriors</span>
+    <span class="team-meta">Pacific</span>
+  </a>
+
+  <a class="team-card" data-name="la clippers los angeles" href="nba/la-clippers/index.html">
+    <div class="team-badge" style="background:#C8102E; color:#ffffff;">LAC</div>
+    <span class="team-name">LA Clippers</span>
+    <span class="team-meta">Pacific</span>
+  </a>
+
+  <a class="team-card" data-name="los angeles lakers" href="nba/los-angeles-lakers/index.html">
+    <div class="team-badge" style="background:#552583; color:#FDB927;">LAL</div>
+    <span class="team-name">Los Angeles Lakers</span>
+    <span class="team-meta">Pacific</span>
+  </a>
+
+  <a class="team-card" data-name="phoenix suns" href="nba/phoenix-suns/index.html">
+    <div class="team-badge" style="background:#1D1160; color:#E56020;">PHX</div>
+    <span class="team-name">Phoenix Suns</span>
+    <span class="team-meta">Pacific</span>
+  </a>
+
+  <a class="team-card" data-name="sacramento kings" href="nba/sacramento-kings/index.html">
+    <div class="team-badge" style="background:#5A2D81; color:#ffffff;">SAC</div>
+    <span class="team-name">Sacramento Kings</span>
+    <span class="team-meta">Pacific</span>
+  </a>
+
+</div>
+
+<h2 class="division-heading">Western Conference · Southwest</h2>
+<div class="team-grid">
+
+  <a class="team-card" data-name="dallas mavericks" href="nba/dallas-mavericks/index.html">
+    <div class="team-badge" style="background:#0053BC; color:#ffffff;">DAL</div>
+    <span class="team-name">Dallas Mavericks</span>
+    <span class="team-meta">Southwest</span>
+  </a>
+
+  <a class="team-card" data-name="houston rockets" href="nba/houston-rockets/index.html">
+    <div class="team-badge" style="background:#CE1141; color:#ffffff;">HOU</div>
+    <span class="team-name">Houston Rockets</span>
+    <span class="team-meta">Southwest</span>
+  </a>
+
+  <a class="team-card" data-name="memphis grizzlies" href="nba/memphis-grizzlies/index.html">
+    <div class="team-badge" style="background:#5D76A9; color:#ffffff;">MEM</div>
+    <span class="team-name">Memphis Grizzlies</span>
+    <span class="team-meta">Southwest</span>
+  </a>
+
+  <a class="team-card" data-name="new orleans pelicans" href="nba/new-orleans-pelicans/index.html">
+    <div class="team-badge" style="background:#0C2340; color:#ffffff;">NOP</div>
+    <span class="team-name">New Orleans Pelicans</span>
+    <span class="team-meta">Southwest</span>
+  </a>
+
+  <a class="team-card" data-name="san antonio spurs" href="nba/san-antonio-spurs/index.html">
+    <div class="team-badge" style="background:#000000; color:#C4CED4;">SAS</div>
+    <span class="team-name">San Antonio Spurs</span>
+    <span class="team-meta">Southwest</span>
+  </a>
+
+</div>
+
+<p class="teams-empty" id="teamsEmpty">No teams match your search.</p>
+
+<script>
+(function () {
+  const search   = document.getElementById('teamSearch');
+  const cards    = Array.from(document.querySelectorAll('.team-card'));
+  const headings = Array.from(document.querySelectorAll('.division-heading'));
+  const empty    = document.getElementById('teamsEmpty');
+
+  search.addEventListener('input', function () {
+    const query = search.value.trim().toLowerCase();
+    let anyVisible = false;
+
+    cards.forEach(function (card) {
+      const visible = query === '' || card.dataset.name.includes(query);
+      card.style.display = visible ? '' : 'none';
+      if (visible) anyVisible = true;
+    });
+
+    headings.forEach(function (heading) {
+      const grid = heading.nextElementSibling;
+      const sectionHasVisibleCard = grid && Array.from(grid.querySelectorAll('.team-card'))
+        .some(function (c) { return c.style.display !== 'none'; });
+      heading.style.display = sectionHasVisibleCard ? '' : 'none';
+      if (grid) grid.style.display = sectionHasVisibleCard ? '' : 'none';
+    });
+
+    empty.style.display = anyVisible ? 'none' : 'block';
+  });
+})();
+</script>
+```

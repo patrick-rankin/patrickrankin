@@ -254,6 +254,101 @@ hr {
   margin: 2rem 0;
 }
 
+/* ── Teams Page ── */
+.teams-toolbar {
+  margin-bottom: 1.75rem;
+}
+
+.teams-search {
+  width: 100%;
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--cbr-border);
+  border-radius: var(--cbr-radius);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.92rem;
+  color: var(--cbr-text);
+  background: #ffffff;
+}
+
+.teams-search:focus {
+  outline: none;
+  border-color: var(--cbr-accent);
+  box-shadow: 0 0 0 3px rgba(232, 160, 32, 0.2);
+}
+
+.division-heading {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--cbr-muted);
+  margin: 1.75rem 0 0.75rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--cbr-border);
+}
+
+.division-heading:first-of-type {
+  margin-top: 0.5rem;
+}
+
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.team-card {
+  display: block;
+  background: #ffffff;
+  border: 1px solid var(--cbr-border);
+  border-radius: var(--cbr-radius);
+  box-shadow: var(--cbr-shadow);
+  padding: 1.1rem 0.8rem;
+  text-align: center;
+  text-decoration: none;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.team-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--cbr-shadow-lg);
+}
+
+.team-badge {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  margin: 0 auto 0.65rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 0.95rem;
+}
+
+.team-card .team-name {
+  display: block;
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: var(--cbr-navy);
+}
+
+.team-card .team-meta {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--cbr-muted);
+  margin-top: 0.2rem;
+}
+
+.teams-empty {
+  display: none;
+  text-align: center;
+  color: var(--cbr-muted);
+  padding: 2rem 0;
+}
+
 /* ── Responsive ── */
 @media (max-width: 768px) {
   #quarto-content main {

@@ -1,0 +1,55 @@
+---
+title: "NCAA Teams"
+subtitle: "Browse every college basketball team covered on Classroom to Court"
+---
+
+```{=html}
+<div class="teams-toolbar">
+  <input type="text" class="teams-search" id="teamSearch" placeholder="Search NCAA teams…" aria-label="Search NCAA teams">
+</div>
+
+<div class="team-grid">
+
+  <a class="team-card" data-name="duke blue devils" href="ncaa/duke-blue-devils/index.html">
+    <div class="team-badge" style="background:#00539B; color:#ffffff;">DUKE</div>
+    <span class="team-name">Duke Blue Devils</span>
+    <span class="team-meta">ACC</span>
+  </a>
+
+  <a class="team-card" data-name="ucla bruins" href="ncaa/ucla/index.html">
+    <div class="team-badge" style="background:#2D68C4; color:#FFD100;">UCLA</div>
+    <span class="team-name">UCLA Bruins</span>
+    <span class="team-meta">Big Ten</span>
+  </a>
+
+  <a class="team-card" data-name="unc tar heels north carolina" href="ncaa/unc-tar-heels/index.html">
+    <div class="team-badge" style="background:#7BAFD4; color:#13294B;">UNC</div>
+    <span class="team-name">UNC Tar Heels</span>
+    <span class="team-meta">ACC</span>
+  </a>
+
+</div>
+
+<p class="teams-empty" id="teamsEmpty">No teams match your search.</p>
+
+<script>
+(function () {
+  const search = document.getElementById('teamSearch');
+  const cards  = Array.from(document.querySelectorAll('.team-card'));
+  const empty  = document.getElementById('teamsEmpty');
+
+  search.addEventListener('input', function () {
+    const query = search.value.trim().toLowerCase();
+    let anyVisible = false;
+
+    cards.forEach(function (card) {
+      const visible = query === '' || card.dataset.name.includes(query);
+      card.style.display = visible ? '' : 'none';
+      if (visible) anyVisible = true;
+    });
+
+    empty.style.display = anyVisible ? 'none' : 'block';
+  });
+})();
+</script>
+```
