@@ -1,0 +1,311 @@
+---
+title: "NHL Player Season Grade Report"
+author: "Pat Rankin"
+format: html
+editor: visual
+execute:
+  message: false
+  warning: false
+---
+
+```{r}
+#| label: packages
+
+# install.packages("pak")
+# pak::pak("sportsdataverse/hockeyR")
+# install.packages("dplyr")
+# install.packages("ggplot2")
+
+library(hockeyR)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+```
+
+## ⚙️ Your Settings — Change These Before Rendering
+
+```{r}
+#| label: settings
+
+# ============================================================
+#  FILL IN YOUR INFO BELOW — this is the only section
+#  you need to change each time you run this report.
+# ============================================================
+
+# Which NHL player do you want to grade?
+# Use the player's full name as Hockey Reference lists it (First Last).
+# Examples: "Nathan MacKinnon", "Connor McDavid", "Auston Matthews"
+my_player <- "Nathan MacKinnon"
+
+# Which season? Use the FULL season string in Hockey Reference format.
+# Example: the 2024-25 season is "20242025"
+season_str <- "20242025"
+
+# Season label shown in the report (for display only)
+season_label <- "2024-25"
+
+# Player type — determines which benchmarks are used:
+# "Skater" for forwards and defensemen
+# "Goalie" for goaltenders
+player_type <- "Skater"
+
+# Position within Skater — used to adjust assist benchmarks:
+# "Forward" or "Defenseman"
+# (Ignored if player_type is "Goalie")
+skater_position <- "Forward"
+
+# ============================================================
+#  THAT'S IT — scroll down to render and read your report.
+# ============================================================
+```
+
+```{r}
+#| label: ingest
+#| include: false
+
+if (player_type == "Skater") {
+  all_skaters <- hockeyR::get_skater_stats_hr(season = season_str, type = "regular")
+
+  player_data <- all_skaters %>%
+    filter(tolower(player) == tolower(my_player))
+
+  if (nrow(player_data) == 0) {
+    # Try partial match
+    player_data <- all_skaters %>%
+      filter(grepl(my_player, player, ignore.case = TRUE))
+  }
+
+  if (nrow(player_data) == 0) {
+    stop("Player '", my_player, "' not found. Run: ",
+         "hockeyR::get_skater_stats_hr(season='", season_str, "', type='regular') %>% ",
+         "filter(grepl('LAST_NAME', player, ignore.case=TRUE)) to find the exact name.")
+  }
+
+  # Take first row if multiple (traded players may have multiple rows)
+  player_data <- player_data %>% slice(1)
+
+  player_name_full <- player_data$player[1]
+  team_name_full   <- player_data$team[1]
+
+} else {
+  all_goalies <- hockeyR::get_goalie_stats_hr(season = season_str, type = "regular")
+
+  player_data <- all_goalies %>%
+    filter(tolower(player) == tolower(my_player))
+
+  if (nrow(player_data) == 0) {
+    player_data <- all_goalies %>%
+      filter(grepl(my_player, player, ignore.case = TRUE))
+  }
+
+  if (nrow(player_data) == 0) {
+    stop("Goalie '", my_player, "' not found.")
+  }
+
+  player_data    <- player_data %>% slice(1)
+  player_name_full <- player_data$player[1]
+  team_name_full   <- player_data$team[1]
+}
+```
+
+```{r}
+#| label: grading
+#| include: false
+
+score_to_letter <- function(score) {
+  if      (score >= 4.0) "A+"
+  else if (score >= 3.7) "A"
+  else if (score >= 3.3) "A-"
+  else if (score >= 3.0) "B+"
+  else if (score >= 2.7) "B"
+  else if (score >= 2.3) "B-"
+  else if (score >= 2.0) "C+"
+  else if (score >= 1.7) "C"
+  else if (score >= 1.3) "C-"
+  else if (score >= 1.0) "D+"
+  else if (score >= 0.7) "D"
+  else if (score >= 0.3) "D-"
+  else                   "F"
+}
+
+grade_stat <- function(value, thresholds, lower_is_better = FALSE) {
+  if (is.na(value)) return("N/A")
+  if (lower_is_better) {
+    if      (value <= thresholds["A"]) gpa <- 4.0
+    else if (value <= thresholds["B"]) gpa <- 3.0
+    else if (value <= thresholds["C"]) gpa <- 2.0
+    else if (value <= thresholds["D"]) gpa <- 1.0
+    else                               gpa <- 0.0
+  } else {
+    if      (value >= thresholds["A"]) gpa <- 4.0
+    else if (value >= thresholds["B"]) gpa <- 3.0
+    else if (value >= thresholds["C"]) gpa <- 2.0
+    else if (value >= thresholds["D"]) gpa <- 1.0
+    else                               gpa <- 0.0
+  }
+  score_to_letter(gpa)
+}
+
+letter_to_gpa <- function(l) {
+  if (l == "N/A") return(NA_real_)
+  switch(l,
+    "A+"=4.3,"A"=4.0,"A-"=3.7,
+    "B+"=3.3,"B"=3.0,"B-"=2.7,
+    "C+"=2.3,"C"=2.0,"C-"=1.7,
+    "D+"=1.3,"D"=1.0,"D-"=0.7,"F"=0.0)
+}
+
+if (player_type == "Skater") {
+
+  gp      <- as.numeric(player_data$games_played)
+  goals   <- as.numeric(player_data$goals)
+  assists <- as.numeric(player_data$assists)
+  points  <- as.numeric(player_data$points)
+  pm      <- as.numeric(player_data$plus_minus)
+  shots   <- as.numeric(player_data$shots)
+  shot_pct <- as.numeric(player_data$shot_pct)
+  ppg     <- as.numeric(player_data$pp_goals)
+  ppp     <- as.numeric(player_data$pp_points)
+  hits    <- as.numeric(player_data$hits)   # may be NA depending on source
+  blocks  <- as.numeric(player_data$blocked_shots)
+
+  # Per-game rates
+  gpg  <- goals   / gp
+  apg  <- assists / gp
+  ptpg <- points  / gp
+
+  # Benchmarks: NHL top-six forward / top-four defenseman averages
+  ast_thresh <- if (skater_position == "Forward")
+    c(A=0.7, B=0.5, C=0.35, D=0.2)
+  else
+    c(A=0.5, B=0.35, C=0.22, D=0.12)
+
+  goal_thresh <- if (skater_position == "Forward")
+    c(A=0.45, B=0.30, C=0.18, D=0.10)
+  else
+    c(A=0.20, B=0.13, C=0.08, D=0.04)
+
+  grade_goals   <- grade_stat(gpg,     goal_thresh)
+  grade_assists <- grade_stat(apg,     ast_thresh)
+  grade_points  <- grade_stat(ptpg,    c(A=1.1, B=0.75, C=0.50, D=0.30))
+  grade_pm      <- grade_stat(pm,      c(A=20,  B=10,   C=0,    D=-10))
+  grade_shot    <- grade_stat(shot_pct, c(A=16,  B=12,   C=9,    D=6))
+  grade_pp      <- grade_stat(ppp,     c(A=30,  B=20,   C=12,   D=5))
+
+  all_grades <- c(grade_goals, grade_assists, grade_points,
+                  grade_pm, grade_shot, grade_pp)
+  weights    <- c(0.25, 0.20, 0.20, 0.15, 0.10, 0.10)
+
+  valid      <- !is.na(sapply(all_grades, letter_to_gpa))
+  overall_gpa   <- weighted.mean(sapply(all_grades, letter_to_gpa)[valid], weights[valid])
+  overall_grade <- score_to_letter(overall_gpa)
+
+  grade_df <- data.frame(
+    Category = c("Goals/Game","Assists/Game","Points/Game","Plus/Minus","Shot %","PP Points"),
+    Value    = c(sprintf("%.2f", gpg), sprintf("%.2f", apg), sprintf("%.2f", ptpg),
+                 sprintf("%+d", as.integer(pm)), sprintf("%.1f%%", shot_pct),
+                 sprintf("%d", as.integer(ppp))),
+    Grade    = all_grades,
+    GPA      = sapply(all_grades, letter_to_gpa)
+  ) %>% filter(!is.na(GPA))
+
+} else {
+
+  # Goalie
+  gp     <- as.numeric(player_data$games_played)
+  wins   <- as.numeric(player_data$wins)
+  losses <- as.numeric(player_data$losses)
+  sv_pct <- as.numeric(player_data$save_pct) * 100
+  gaa    <- as.numeric(player_data$goals_against_avg)
+  so     <- as.numeric(player_data$shutouts)
+
+  grade_svpct <- grade_stat(sv_pct, c(A=91.5, B=90.5, C=89.5, D=88.5))
+  grade_gaa   <- grade_stat(gaa,    c(A=2.4,  B=2.7,  C=3.0,  D=3.3),  lower_is_better=TRUE)
+  grade_wins  <- grade_stat(wins,   c(A=35,   B=28,   C=22,   D=15))
+  grade_so    <- grade_stat(so,     c(A=5,    B=3,    C=2,    D=1))
+
+  all_grades <- c(grade_svpct, grade_gaa, grade_wins, grade_so)
+  weights    <- c(0.35, 0.35, 0.20, 0.10)
+
+  overall_gpa   <- weighted.mean(sapply(all_grades, letter_to_gpa), weights)
+  overall_grade <- score_to_letter(overall_gpa)
+
+  grade_df <- data.frame(
+    Category = c("Save %","Goals Against Avg","Wins","Shutouts"),
+    Value    = c(sprintf("%.1f%%", sv_pct), sprintf("%.2f", gaa),
+                 sprintf("%d", as.integer(wins)), sprintf("%d", as.integer(so))),
+    Grade    = all_grades,
+    GPA      = sapply(all_grades, letter_to_gpa)
+  )
+}
+
+grade_df$Grade_Group <- case_when(
+  grade_df$GPA >= 3.7 ~ "A",
+  grade_df$GPA >= 2.7 ~ "B",
+  grade_df$GPA >= 1.7 ~ "C",
+  grade_df$GPA >= 0.7 ~ "D",
+  TRUE                ~ "F"
+)
+```
+
+## `r player_name_full` — `r team_name_full` | `r season_label`
+
+**Type:** `r player_type` `r if(player_type=="Skater") paste0("(", skater_position, ")")` | **Games Played:** `r gp`
+
+**Overall Season Grade: `r overall_grade`**
+
+---
+
+## Category Grades
+
+```{r}
+#| label: grade-chart
+
+grade_colors <- c("A"="#2ecc71","B"="#3498db","C"="#f39c12","D"="#e67e22","F"="#e74c3c")
+
+ggplot(grade_df, aes(x = reorder(Category, GPA), y = GPA, fill = Grade_Group)) +
+  geom_col(width = 0.7) +
+  geom_text(aes(label = Grade), hjust = -0.2, fontface = "bold", size = 4.5) +
+  scale_fill_manual(values = grade_colors, name = "Grade") +
+  scale_y_continuous(limits = c(0, 5.2), breaks = c(0,1,2,3,4)) +
+  coord_flip() +
+  labs(
+    title    = paste(player_name_full, "— Category Grades"),
+    subtitle = paste(season_label, "NHL Season"),
+    x        = NULL,
+    y        = "Grade Points (4.0 scale)"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "right")
+```
+
+## Season Stats Summary
+
+```{r}
+#| label: stats-table
+
+if (player_type == "Skater") {
+  summary_tbl <- data.frame(
+    Statistic = c("Games Played","Goals","Assists","Points","Plus/Minus",
+                  "Shots","Shot %","PP Goals","PP Points"),
+    Value     = c(gp, goals, assists, points,
+                  sprintf("%+d", as.integer(pm)),
+                  shots,
+                  sprintf("%.1f%%", shot_pct),
+                  as.integer(ppg), as.integer(ppp))
+  )
+} else {
+  summary_tbl <- data.frame(
+    Statistic = c("Games Played","Wins","Losses","Save %","GAA","Shutouts"),
+    Value     = c(gp, as.integer(wins), as.integer(losses),
+                  sprintf("%.1f%%", sv_pct), sprintf("%.2f", gaa),
+                  as.integer(so))
+  )
+}
+
+knitr::kable(summary_tbl, align = c("l","r"), col.names = c("Statistic","Season Total"))
+```
+
+## How the Grade Is Calculated
+
+For skaters, grades are based on per-game scoring rates compared to NHL starter averages, with goals (25%) and points per game (20%) carrying the most weight. Plus/minus reflects defensive responsibility. For goalies, save percentage and goals against average are the primary factors (35% each), reflecting how directly they control outcomes. Benchmarks adjust for position — defensemen are held to different scoring expectations than forwards.

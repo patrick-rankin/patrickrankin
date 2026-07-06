@@ -1,0 +1,327 @@
+---
+title: "MLB Team Season Grade Report"
+author: "Pat Rankin"
+format: html
+editor: visual
+execute:
+  message: false
+  warning: false
+---
+
+```{r}
+#| label: packages
+
+# install.packages("baseballr")
+# install.packages("dplyr")
+# install.packages("ggplot2")
+# install.packages("tidyr")
+
+library(baseballr)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+```
+
+## ⚙️ Your Settings — Change These Before Rendering
+
+```{r}
+#| label: settings
+
+# ============================================================
+#  FILL IN YOUR INFO BELOW — this is the only section
+#  you need to change each time you run this report.
+# ============================================================
+
+# Which MLB team do you want to grade?
+# Use the Baseball Reference 3-letter team abbreviation.
+# Examples: "NYY", "BOS", "LAD", "HOU", "ATL", "CHC", "SFG", "NYM"
+# Not sure? Run: baseballr::bref_team_results("NYY", 2024) to test a known team,
+# then swap your team in.
+my_team <- "NYY"
+
+# Which season? Use the calendar year.
+# Example: the 2024 season is 2024.
+season_year <- 2024
+
+# Season label shown in the report (for display only)
+season_label <- "2024"
+
+# ============================================================
+#  THAT'S IT — scroll down to render and read your report.
+# ============================================================
+```
+
+```{r}
+#| label: ingest
+#| include: false
+
+# Pull game-by-game results from Baseball Reference
+game_log <- baseballr::bref_team_results(Tm = my_team, yr = season_year)
+
+if (is.null(game_log) || nrow(game_log) == 0) {
+  stop("No data found for '", my_team, "' in ", season_year,
+       ". Check the abbreviation — Baseball Reference uses standard 3-letter codes.")
+}
+
+# Clean up the results
+team_data <- game_log %>%
+  filter(!is.na(R), !is.na(RA)) %>%
+  mutate(
+    runs_scored  = as.numeric(R),
+    runs_allowed = as.numeric(RA),
+    won          = grepl("^W", `W/L`),
+    run_diff     = runs_scored - runs_allowed
+  )
+
+team_name_full <- paste(my_team, season_label, "Season")
+games_played   <- nrow(team_data)
+wins           <- sum(team_data$won, na.rm = TRUE)
+losses         <- games_played - wins
+win_pct        <- wins / games_played * 100
+
+# Pull offensive team stats from FanGraphs (season totals, convert to per-game)
+batting <- tryCatch(
+  baseballr::fg_team_batter(startseason = as.character(season_year),
+                             endseason   = as.character(season_year)) %>%
+    filter(teamName == my_team | abbreviation == my_team),
+  error = function(e) NULL
+)
+
+pitching <- tryCatch(
+  baseballr::fg_team_pitcher(startseason = as.character(season_year),
+                              endseason   = as.character(season_year)) %>%
+    filter(teamName == my_team | abbreviation == my_team),
+  error = function(e) NULL
+)
+```
+
+```{r}
+#| label: averages
+#| include: false
+
+avg_runs <- team_data %>%
+  summarise(
+    runs_per_game    = mean(runs_scored,  na.rm = TRUE),
+    runs_allowed_pg  = mean(runs_allowed, na.rm = TRUE),
+    run_diff         = mean(run_diff,     na.rm = TRUE)
+  )
+
+# FanGraphs stats (if available)
+avg_bat <- if (!is.null(batting) && nrow(batting) > 0) {
+  list(
+    avg      = as.numeric(batting$AVG[1]),
+    obp      = as.numeric(batting$OBP[1]),
+    slg      = as.numeric(batting$SLG[1]),
+    ops      = as.numeric(batting$OPS[1]),
+    hr_pg    = as.numeric(batting$HR[1]) / games_played,
+    k_pct    = as.numeric(batting$`K%`[1]) * 100,
+    bb_pct   = as.numeric(batting$`BB%`[1]) * 100
+  )
+} else {
+  list(avg=NA, obp=NA, slg=NA, ops=NA, hr_pg=NA, k_pct=NA, bb_pct=NA)
+}
+
+avg_pit <- if (!is.null(pitching) && nrow(pitching) > 0) {
+  list(
+    era   = as.numeric(pitching$ERA[1]),
+    whip  = as.numeric(pitching$WHIP[1]),
+    fip   = as.numeric(pitching$FIP[1]),
+    k9    = as.numeric(pitching$`K/9`[1]),
+    bb9   = as.numeric(pitching$`BB/9`[1])
+  )
+} else {
+  list(era=NA, whip=NA, fip=NA, k9=NA, bb9=NA)
+}
+```
+
+```{r}
+#| label: grading
+#| include: false
+
+score_to_letter <- function(score) {
+  if      (score >= 4.0) "A+"
+  else if (score >= 3.7) "A"
+  else if (score >= 3.3) "A-"
+  else if (score >= 3.0) "B+"
+  else if (score >= 2.7) "B"
+  else if (score >= 2.3) "B-"
+  else if (score >= 2.0) "C+"
+  else if (score >= 1.7) "C"
+  else if (score >= 1.3) "C-"
+  else if (score >= 1.0) "D+"
+  else if (score >= 0.7) "D"
+  else if (score >= 0.3) "D-"
+  else                   "F"
+}
+
+grade_stat <- function(value, thresholds, lower_is_better = FALSE) {
+  if (is.na(value) || is.nan(value)) return("N/A")
+  if (lower_is_better) {
+    if      (value <= thresholds["A"]) gpa <- 4.0
+    else if (value <= thresholds["B"]) gpa <- 3.0
+    else if (value <= thresholds["C"]) gpa <- 2.0
+    else if (value <= thresholds["D"]) gpa <- 1.0
+    else                               gpa <- 0.0
+  } else {
+    if      (value >= thresholds["A"]) gpa <- 4.0
+    else if (value >= thresholds["B"]) gpa <- 3.0
+    else if (value >= thresholds["C"]) gpa <- 2.0
+    else if (value >= thresholds["D"]) gpa <- 1.0
+    else                               gpa <- 0.0
+  }
+  score_to_letter(gpa)
+}
+
+letter_to_gpa <- function(l) {
+  if (l == "N/A") return(NA_real_)
+  switch(l,
+    "A+"=4.3,"A"=4.0,"A-"=3.7,
+    "B+"=3.3,"B"=3.0,"B-"=2.7,
+    "C+"=2.3,"C"=2.0,"C-"=1.7,
+    "D+"=1.3,"D"=1.0,"D-"=0.7,"F"=0.0)
+}
+
+# Benchmarks: MLB league averages (2024 season)
+grade_runs_scored <- grade_stat(avg_runs$runs_per_game,   c(A=5.2, B=4.6, C=4.1, D=3.6))
+grade_runs_allowed <- grade_stat(avg_runs$runs_allowed_pg, c(A=3.6, B=4.1, C=4.6, D=5.2), lower_is_better=TRUE)
+grade_ops         <- grade_stat(avg_bat$ops,              c(A=.780, B=.740, C=.700, D=.660))
+grade_obp         <- grade_stat(avg_bat$obp,              c(A=.335, B=.318, C=.305, D=.290))
+grade_slg         <- grade_stat(avg_bat$slg,              c(A=.445, B=.415, C=.385, D=.360))
+grade_era         <- grade_stat(avg_pit$era,              c(A=3.4, B=3.9, C=4.4, D=5.0),  lower_is_better=TRUE)
+grade_whip        <- grade_stat(avg_pit$whip,             c(A=1.12, B=1.22, C=1.32, D=1.42), lower_is_better=TRUE)
+grade_win_pct     <- grade_stat(win_pct,                  c(A=60, B=54, C=49, D=43))
+
+all_grades <- c(grade_runs_scored, grade_runs_allowed, grade_ops, grade_obp,
+                grade_slg, grade_era, grade_whip, grade_win_pct)
+weights    <- c(0.15, 0.15, 0.14, 0.10, 0.10, 0.16, 0.12, 0.08)
+
+valid      <- !is.na(sapply(all_grades, letter_to_gpa))
+overall_gpa   <- weighted.mean(sapply(all_grades, letter_to_gpa)[valid], weights[valid])
+overall_grade <- score_to_letter(overall_gpa)
+
+grade_df <- data.frame(
+  Category = c("Runs Scored/G","Runs Allowed/G","OPS","OBP","SLG","ERA","WHIP","Win %"),
+  Grade    = all_grades,
+  GPA      = sapply(all_grades, letter_to_gpa)
+) %>% filter(!is.na(GPA))
+
+grade_df$Grade_Group <- case_when(
+  grade_df$GPA >= 3.7 ~ "A",
+  grade_df$GPA >= 2.7 ~ "B",
+  grade_df$GPA >= 1.7 ~ "C",
+  grade_df$GPA >= 0.7 ~ "D",
+  TRUE                ~ "F"
+)
+```
+
+## `r my_team` — `r season_label` Season Report
+
+**Record:** `r wins`-`r losses` (`r sprintf("%.1f", win_pct)`% win rate) | **Run Differential:** `r sprintf("%+.1f", avg_runs$run_diff)` per game | **Games Graded:** `r games_played`
+
+**Overall Season Grade: `r overall_grade`**
+
+---
+
+## Category Grades
+
+```{r}
+#| label: grade-chart
+
+grade_colors <- c("A"="#2ecc71","B"="#3498db","C"="#f39c12","D"="#e67e22","F"="#e74c3c")
+
+ggplot(grade_df, aes(x = reorder(Category, GPA), y = GPA, fill = Grade_Group)) +
+  geom_col(width = 0.7) +
+  geom_text(aes(label = Grade), hjust = -0.2, fontface = "bold", size = 4.5) +
+  scale_fill_manual(values = grade_colors, name = "Grade") +
+  scale_y_continuous(limits = c(0, 5.2), breaks = c(0,1,2,3,4)) +
+  coord_flip() +
+  labs(
+    title    = paste(my_team, "— Category Grades"),
+    subtitle = paste(season_label, "MLB Season"),
+    x        = NULL,
+    y        = "Grade Points (4.0 scale)"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "right")
+```
+
+## Runs Scored vs. Runs Allowed Per Game
+
+```{r}
+#| label: runs-trend
+
+trend_data <- team_data %>%
+  mutate(game_num = row_number(),
+         result   = ifelse(won, "Win", "Loss"))
+
+ggplot(trend_data, aes(x = game_num)) +
+  geom_line(aes(y = runs_scored),  color = "#2ecc71", linewidth = 0.7, alpha = 0.7) +
+  geom_line(aes(y = runs_allowed), color = "#e74c3c", linewidth = 0.7, linetype="dashed", alpha = 0.7) +
+  geom_smooth(aes(y = runs_scored),  color = "#2ecc71", se = FALSE, linewidth = 1.2) +
+  geom_smooth(aes(y = runs_allowed), color = "#e74c3c", se = FALSE, linewidth = 1.2, linetype="dashed") +
+  labs(
+    title    = paste(my_team, "— Runs Per Game"),
+    subtitle = "Green = runs scored  |  Red dashed = runs allowed  |  Smoothed trend lines",
+    x        = "Game Number", y = "Runs"
+  ) +
+  theme_minimal(base_size = 13)
+```
+
+## Cumulative Win/Loss Record
+
+```{r}
+#| label: win-loss
+
+trend_data <- trend_data %>%
+  mutate(
+    cum_wins   = cumsum(as.integer(won)),
+    cum_losses = cumsum(as.integer(!won))
+  )
+
+trend_long <- trend_data %>%
+  select(game_num, cum_wins, cum_losses) %>%
+  pivot_longer(cols = c(cum_wins, cum_losses), names_to = "Type", values_to = "Count") %>%
+  mutate(Type = recode(Type, cum_wins = "Wins", cum_losses = "Losses"))
+
+ggplot(trend_long, aes(x = game_num, y = Count, color = Type)) +
+  geom_line(linewidth = 1.1) +
+  scale_color_manual(values = c("Wins"="#2ecc71","Losses"="#e74c3c")) +
+  labs(
+    title = paste(my_team, "— Cumulative Win/Loss Record"),
+    x = "Game Number", y = "Games", color = NULL
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "top")
+```
+
+## Key Stats Summary
+
+```{r}
+#| label: stats-table
+
+summary_tbl <- data.frame(
+  Statistic = c("Record","Win %","Runs Per Game","Runs Allowed Per Game",
+                "Run Differential","Batting Average","OBP","SLG","OPS","ERA","WHIP"),
+  Value     = c(
+    paste0(wins, "-", losses),
+    sprintf("%.1f%%", win_pct),
+    sprintf("%.2f", avg_runs$runs_per_game),
+    sprintf("%.2f", avg_runs$runs_allowed_pg),
+    sprintf("%+.2f", avg_runs$run_diff),
+    ifelse(is.na(avg_bat$avg),  "N/A", sprintf(".%03d", round(avg_bat$avg * 1000))),
+    ifelse(is.na(avg_bat$obp),  "N/A", sprintf(".%03d", round(avg_bat$obp * 1000))),
+    ifelse(is.na(avg_bat$slg),  "N/A", sprintf(".%03d", round(avg_bat$slg * 1000))),
+    ifelse(is.na(avg_bat$ops),  "N/A", sprintf(".%03d", round(avg_bat$ops * 1000))),
+    ifelse(is.na(avg_pit$era),  "N/A", sprintf("%.2f", avg_pit$era)),
+    ifelse(is.na(avg_pit$whip), "N/A", sprintf("%.2f", avg_pit$whip))
+  )
+)
+
+knitr::kable(summary_tbl, align = c("l","r"), col.names = c("Statistic","Value"))
+```
+
+## How the Grade Is Calculated
+
+Each category is graded against MLB league averages from the 2024 season and weighted into an overall score. ERA carries the most weight (16%) because pitching is the dominant factor in baseball outcomes. Runs scored and runs allowed each carry 15%. OPS combines on-base and slugging to reflect overall offensive quality in a single number.
+
+Game-by-game results come from Baseball Reference. Batting and pitching percentage stats (OPS, ERA, WHIP) come from FanGraphs — if those didn't load, those categories will show as N/A and only the run-based grades contribute to the overall.

@@ -1,0 +1,271 @@
+/* ============================================================
+   Classroom to Court — Global Styles
+   ============================================================ */
+
+/* ── Google Font ── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap');
+
+/* ── CSS Variables ── */
+:root {
+  --cbr-navy:      #0a1628;
+  --cbr-blue:      #1a3a6b;
+  --cbr-accent:    #e8a020;
+  --cbr-light-bg:  #f4f6fa;
+  --cbr-card-bg:   #ffffff;
+  --cbr-text:      #1c1c2e;
+  --cbr-muted:     #6b7280;
+  --cbr-border:    #e2e8f0;
+  --cbr-radius:    10px;
+  --cbr-shadow:    0 2px 12px rgba(10, 22, 40, 0.08);
+  --cbr-shadow-lg: 0 6px 28px rgba(10, 22, 40, 0.14);
+}
+
+/* ── Base ── */
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  color: var(--cbr-text);
+  background-color: var(--cbr-light-bg);
+  line-height: 1.7;
+  font-size: 16px;
+}
+
+/* ── Navbar ── */
+.navbar {
+  background: var(--cbr-navy) !important;
+  border-bottom: 3px solid var(--cbr-accent);
+  box-shadow: 0 2px 16px rgba(0,0,0,0.25);
+  padding: 0.6rem 1.5rem;
+}
+
+.navbar-brand {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: #ffffff !important;
+  letter-spacing: 0.02em;
+}
+
+.navbar-brand span {
+  color: var(--cbr-accent);
+}
+
+.navbar .nav-link {
+  color: rgba(255,255,255,0.82) !important;
+  font-weight: 500;
+  font-size: 0.9rem;
+  letter-spacing: 0.03em;
+  padding: 0.5rem 1rem !important;
+  border-radius: 6px;
+  transition: color 0.2s, background 0.2s;
+}
+
+.navbar .nav-link:hover,
+.navbar .nav-link.active {
+  color: #ffffff !important;
+  background: rgba(232, 160, 32, 0.18);
+}
+
+/* ── Page Content Container ── */
+#quarto-content main {
+  background: var(--cbr-card-bg);
+  border-radius: var(--cbr-radius);
+  box-shadow: var(--cbr-shadow);
+  padding: 2.5rem 3rem;
+  margin: 1.5rem auto;
+  max-width: 980px;
+}
+
+/* ── Headings ── */
+h1.title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 2.4rem;
+  color: var(--cbr-navy);
+  margin-bottom: 0.15em;
+  letter-spacing: -0.02em;
+  border-bottom: 3px solid var(--cbr-accent);
+  padding-bottom: 0.4rem;
+}
+
+.subtitle {
+  color: var(--cbr-muted);
+  font-size: 1.05rem;
+  font-weight: 400;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+}
+
+h2 {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 1.55rem;
+  color: var(--cbr-blue);
+  margin-top: 2.2rem;
+  margin-bottom: 0.6rem;
+  border-left: 4px solid var(--cbr-accent);
+  padding-left: 0.65rem;
+}
+
+h3 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--cbr-navy);
+  margin-top: 1.5rem;
+}
+
+/* ── Body Text ── */
+p {
+  color: #374151;
+  margin-bottom: 1rem;
+}
+
+/* ── Callout Boxes ── */
+.callout {
+  border-radius: var(--cbr-radius);
+  border-left-width: 5px;
+  box-shadow: var(--cbr-shadow);
+  font-size: 0.95rem;
+  background: #f8faff;
+}
+
+.callout-note {
+  border-left-color: var(--cbr-blue);
+}
+
+.callout-tip {
+  border-left-color: #16a34a;
+}
+
+.callout-warning {
+  border-left-color: var(--cbr-accent);
+}
+
+/* ── Blockquotes (Insight boxes) ── */
+blockquote {
+  border-left: 4px solid var(--cbr-accent);
+  background: #fffbf0;
+  border-radius: 0 var(--cbr-radius) var(--cbr-radius) 0;
+  padding: 0.9rem 1.2rem;
+  margin: 1.4rem 0;
+  color: #44403c;
+  font-style: normal;
+  font-size: 0.95rem;
+  box-shadow: var(--cbr-shadow);
+}
+
+blockquote strong {
+  color: var(--cbr-navy);
+}
+
+/* ── Tables ── */
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  border-radius: var(--cbr-radius);
+  overflow: hidden;
+  box-shadow: var(--cbr-shadow);
+  font-size: 0.92rem;
+  margin: 1.2rem 0;
+}
+
+thead tr {
+  background: var(--cbr-navy);
+  color: #ffffff;
+}
+
+thead th {
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+}
+
+tbody tr {
+  background: #ffffff;
+  transition: background 0.15s;
+}
+
+tbody tr:nth-child(even) {
+  background: #f8faff;
+}
+
+tbody tr:hover {
+  background: #eef3ff;
+}
+
+tbody td {
+  padding: 0.65rem 1rem;
+  border-top: 1px solid var(--cbr-border);
+  color: var(--cbr-text);
+}
+
+/* ── Code Blocks ── */
+pre, code {
+  font-size: 0.85rem;
+  border-radius: 6px;
+}
+
+.code-fold-btn {
+  font-size: 0.8rem;
+  color: var(--cbr-muted);
+}
+
+/* ── TOC (Table of Contents) ── */
+#TOC {
+  background: var(--cbr-card-bg);
+  border: 1px solid var(--cbr-border);
+  border-radius: var(--cbr-radius);
+  padding: 1rem 1.2rem;
+  box-shadow: var(--cbr-shadow);
+  font-size: 0.88rem;
+}
+
+#TOC > ul {
+  padding-left: 0.5rem;
+}
+
+#TOC a {
+  color: var(--cbr-blue);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.15s;
+}
+
+#TOC a:hover {
+  color: var(--cbr-accent);
+}
+
+/* ── Footer ── */
+footer, .nav-footer {
+  background: var(--cbr-navy);
+  color: rgba(255,255,255,0.6);
+  font-size: 0.82rem;
+  text-align: center;
+  padding: 1rem;
+  border-top: 2px solid var(--cbr-accent);
+}
+
+/* ── Horizontal Rule ── */
+hr {
+  border: none;
+  border-top: 1px solid var(--cbr-border);
+  margin: 2rem 0;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  #quarto-content main {
+    padding: 1.5rem 1.2rem;
+    margin: 0.75rem;
+  }
+
+  h1.title {
+    font-size: 1.8rem;
+  }
+
+  h2 {
+    font-size: 1.25rem;
+  }
+}

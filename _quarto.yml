@@ -1,0 +1,109 @@
+project:
+  type: website
+  output-dir: docs
+  render:
+    - "**/*.qmd"
+    - "!basketball_script/"
+    - "!grader/"
+
+
+website:
+  title: "Classroom to Court"
+  site-url: https://patrick-rankin.github.io/sports.github.io/
+  favicon: "https://a.espncdn.com/i/teamlogos/ncaa/500/150.png"
+  navbar:
+    background: "#0a1628"
+    foreground: "#ffffff"
+    left:
+      - href: index.qmd
+        text: Home
+      - href: about.qmd
+        text: About
+      - text: NCAA
+        menu:
+          - href: ncaa/duke-blue-devils/index.qmd
+            text: Duke Blue Devils
+          - href: ncaa/ucla/index.qmd
+            text: UCLA Bruins
+      - text: NBA
+        menu:
+          - href: nbastatsandwinpct.qmd
+            text: NBA Stats & Win %
+          - text: "--- Atlantic ---"
+          - href: nba/boston-celtics/index.qmd
+            text: Boston Celtics
+          - href: nba/brooklyn-nets/index.qmd
+            text: Brooklyn Nets
+          - href: nba/new-york-knicks/index.qmd
+            text: New York Knicks
+          - href: nba/philadelphia-76ers/index.qmd
+            text: Philadelphia 76ers
+          - href: nba/toronto-raptors/index.qmd
+            text: Toronto Raptors
+          - text: "--- Central ---"
+          - href: nba/chicago-bulls/index.qmd
+            text: Chicago Bulls
+          - href: nba/cleveland-cavaliers/index.qmd
+            text: Cleveland Cavaliers
+          - href: nba/detroit-pistons/index.qmd
+            text: Detroit Pistons
+          - href: nba/indiana-pacers/index.qmd
+            text: Indiana Pacers
+          - href: nba/milwaukee-bucks/index.qmd
+            text: Milwaukee Bucks
+          - text: "--- Southeast ---"
+          - href: nba/atlanta-hawks/index.qmd
+            text: Atlanta Hawks
+          - href: nba/charlotte-hornets/index.qmd
+            text: Charlotte Hornets
+          - href: nba/miami-heat/index.qmd
+            text: Miami Heat
+          - href: nba/orlando-magic/index.qmd
+            text: Orlando Magic
+          - href: nba/washington-wizards/index.qmd
+            text: Washington Wizards
+          - text: "--- Northwest ---"
+          - href: nba/denver-nuggets/index.qmd
+            text: Denver Nuggets
+          - href: nba/minnesota-timberwolves/index.qmd
+            text: Minnesota Timberwolves
+          - href: nba/oklahoma-city-thunder/index.qmd
+            text: Oklahoma City Thunder
+          - href: nba/portland-trail-blazers/index.qmd
+            text: Portland Trail Blazers
+          - href: nba/utah-jazz/index.qmd
+            text: Utah Jazz
+          - text: "--- Pacific ---"
+          - href: nba/golden-state-warriors/index.qmd
+            text: Golden State Warriors
+          - href: nba/la-clippers/index.qmd
+            text: LA Clippers
+          - href: nba/los-angeles-lakers/index.qmd
+            text: Los Angeles Lakers
+          - href: nba/phoenix-suns/index.qmd
+            text: Phoenix Suns
+          - href: nba/sacramento-kings/index.qmd
+            text: Sacramento Kings
+          - text: "--- Southwest ---"
+          - href: nba/dallas-mavericks/index.qmd
+            text: Dallas Mavericks
+          - href: nba/houston-rockets/index.qmd
+            text: Houston Rockets
+          - href: nba/memphis-grizzlies/index.qmd
+            text: Memphis Grizzlies
+          - href: nba/new-orleans-pelicans/index.qmd
+            text: New Orleans Pelicans
+          - href: nba/san-antonio-spurs/index.qmd
+            text: San Antonio Spurs
+  page-footer:
+    center: "© 2026 Classroom to Court · Built with [Quarto](https://quarto.org)"
+    background: "#0a1628"
+
+
+format:
+  html:
+    theme:
+      - cosmo
+      - brand
+    css: styles.css
+    toc: true

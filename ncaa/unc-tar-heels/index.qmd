@@ -1,0 +1,181 @@
+---
+title: "UNC Tar Heels"
+subtitle: "Work in progress — code shown but not executed"
+format: html
+editor: visual
+execute:
+  eval: false
+---
+
+### Analysis of 2025-26 University of North Carolina mens basketball team
+
+```{r}
+library(tidyverse)
+library(readxl)
+library(shiny)
+library(DT)
+library(shinydashboard)
+library(plotly)
+
+
+```
+
+```{r}
+
+team_North_Carolina_2026 <- read_excel("C:/Users/Pat/Desktop/team_North_Carolina_2026.xlsx")
+View(team_North_Carolina_2026)
+```
+
+### Predict Game Outcomes
+
+```{r}
+# Create dashboard layout
+
+ui <- dashboardPage(
+  
+  dashboardHeader(title = "College Basketball Dashboard"),
+  
+  dashboardSidebar(
+  sidebarMenu(
+    
+    menuItem("Overview",
+             tabName = "overview",
+             icon = icon("chart-bar")),
+             
+    menuItem("Player Stats",
+              tabName = "players",
+              icon = icon("users")),
+             
+    menuItem("Graphs",
+              tabName = "graphs",
+              icon =icon("chart-line"))
+             
+  )
+  
+),
+
+dashboardBody(
+  
+  tabItems(
+    
+    tabItem(
+      tabName = "overview",
+      
+      fluidRow(
+        
+        valueBoxOutput("avgPoints"),
+        
+        valueBoxOutput("avgRebounds"),
+        
+        valueBoxOutput("wins"
+        )
+      ),
+      
+      tabItem(
+       tabName = "players",
+      
+       DTOutput("table")
+      ),
+      
+      tabItem(
+       tabName = "graphs",
+      
+       plotlyOutput("scatter"),
+      
+       plotlyOutput("bar")
+      )
+    )
+  )
+)
+```
+
+```{r}
+# Create the Server
+
+server <- function(input,output) {
+  output$avgPoints <- renderValueBox({
+    valueBox(
+      round(mean(basketball$points),1),
+      "Average Points",
+      codlor = "blue",
+      icon =icon("basketball-ball")
+    )
+    
+  })
+  
+  output$avgRebounds <- renderValueBox({
+    
+    valueBox(
+      round(mean(basketball$Rebounds),1),
+      "Averge Rebounds",
+      color = "green"
+    )
+    
+  })
+  
+  output$wins <- renderValueBox({
+    
+    valueBox(
+      sum(basketball$Wins),
+      "Total Wins",
+      color = "orange"
+    )
+    
+  })
+
+```
+
+```{r}
+# Create Interactive graphs
+
+output$scatter <- renderPlotly({
+  
+  p <- ggplot(
+    basketball,
+    aes(rebounds, Points)) +
+    geom_point(size = 3,
+               color = "blue") +
+    labs(title = "Points vs Rebounds")
+  
+  ggplotly(p)
+  
+})
+  
+  
+```
+
+```{r}
+# Bar chart
+
+output$bar <- renderPlotly({
+  
+p <- ggplot(basketball,
+            aes(Player, Points))+
+  geom_col(fill - "steelblue")
+
+ggplotly(p)
+
+})
+```
+
+```{r}
+# Run the app
+
+shinyApp(ui, server)
+```
+
+```{r}
+ui <- fluidPage(
+  titlePanel("My Basketball Dashboard"),
+  plotOutput("scatter")
+)
+
+server <- function(input,output, session) {
+  
+  output$scatter <- renderPlot({
+    plot(1:10, 1:10)
+  })
+}
+
+shinyApp(ui =ui, server = server)
+```

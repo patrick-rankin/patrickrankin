@@ -1,0 +1,28 @@
+---
+title: "Duke basketball"
+author: "Pat Rankin"
+format: html
+editor: visual
+---
+
+### Duke Basketball
+
+```{r}
+  
+# Create scatter plot for 2 numerical variables
+
+library(tidyverse)
+names(team_Duke_2026)
+  
+str(team_Duke_2026)
+
+  
+```
+
+```{r}
+team_Duke_2026 |> 
+  ggplot(aes(field_goals_attempted, field_goal_pct,
+             colour = largest_lead))+
+  geom_point(size = 3)+
+  theme_bw()
+```

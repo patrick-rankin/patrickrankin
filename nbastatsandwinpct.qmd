@@ -1,0 +1,359 @@
+---
+title: "NBA stats and winpct"
+author: "Pat Rankin"
+format: html
+editor: visual
+message: False
+warning: False
+---
+
+```{r}
+library(tidyverse)
+library(readxl)
+library(quarto)
+
+```
+
+# Do NBA teams win more due to 3pt%, TOV, RBS, FT%, or Possessions.
+
+# Create data frame(one predictor variable(win_pct) and 5 independent variables (3Pt%, TOV, RBS, FT%, and pace)
+
+```{r}
+
+teams <- c("DEN","MIA","SAS","CLE","OKC","ATL","MIN","DET","UTA","NYK",
+           "CHI","LAL","CHA","PHI","ORL","NOP","POR","HOU","BOS","MEM",
+           "GSW","TOR","DAL","LAC","WAS","PHO","IND","SAC","MIL","BKN")
+
+three_pt_pct <- c(39.6, 36.1, 35.9, 36.0, 36.5, 37.1, 37.0, 35.6, 34.5, 37.3,
+                   35.6, 35.9, 37.8, 34.9, 34.3, 34.7, 34.3, 36.4, 36.7, 35.3,
+                   35.6, 35.4, 31.9, 36.8, 35.9, 34.0, 38.7, 34.0, 36.0, 35.0)
+
+Tov <- c(12.9, 13.7, 13.5, 14.0, 12.6, 14.2, 14.8, 15.1, 15.5 ,13.6,
+         15.3, 14.5, 15.4, 13.6, 14.2, 14.2, 17.3, 15.4, 12.4, 15.1,
+         15.7, 13.7, 14.5, 14.3 ,15.7, 14.5, 14.5 ,14.3, 15.2, 15.8)
+
+Rbs <- c(44.0, 46.3, 47.0, 44.4, 44.1, 43.5, 44.1, 45.6, 43.8, 45.6,
+         45.0, 41.0, 46.1, 43.6, 43.4, 43.9, 46.0, 48.1, 46.4, 42.1,
+          42.3, 42.1, 44.7, 40.6, 41.9, 43.1, 41.9, 42.3, 40.7, 39.3)
+
+FTPCT <- c(80.8, 79.2, 78.7, 77.6 ,81.7, 77.4 ,75.2, 76.3, 78.6, 79.2,
+           77.6, 76.3, 81.8, 80.9, 80.1, 78.4, 76.5, 76.3, 80.7, 79.3,
+           80.7, 76.9, 75.5, 82.3, 76.6, 78.1, 77.6, 77.2, 73.0, 78.0)
+
+pace <- c(102.3, 106.2, 102.8, 102.8, 102.3, 104.7, 103.3, 102.9, 105.7,
+          99.67, 105.2, 100.6, 101.0, 103.0, 103.6, 103.8, 104.4, 100.5,
+          98.3, 104.5, 102.4, 101.2, 105.2, 99.2, 104.4, 100.6, 103.7,
+          101.9, 100.2, 100.1)
+
+win_pct <- c(73.2, 52.4, 75.6, 63.4, 78.0, 56.1, 59.8, 73.2, 26.8, 64.6, 
+             37.8, 64.6, 53.7, 54.9, 54.9, 31.7, 51.2, 63.4, 68.3, 30.5,
+             45.1, 56.1, 31.7, 51.2, 20.7, 54.9, 23.2, 26.8, 39.0, 24.4)
+
+nba_data <- data.frame(
+  teams,
+  three_pt_pct,
+  Tov,
+  Rbs,
+  FTPCT,
+  pace,
+  win_pct
+)
+
+nba_data
+```
+
+# Perform a linear regression model. Predictor variable is win_pct. The independent variables are three_pt_pct, tov, rbs, FTPCT, and pace.
+
+```{r}
+head(nba_data)
+model <- lm(win_pct ~ pace + FTPCT + Rbs + Tov + three_pt_pct,
+         data = nba_data)
+summary(model)
+```
+
+**Overall Model Fit**
+
+Your regression model is statistically significant overall:
+
+• 𝐹(5,24) = 6.43
+
+• 𝑝 = 0.0006361, 95% LOC
+
+-   0.0006361 \< 0.05 so the model is statistically significant and you reject the null hypothesis. There is strong statistical evidence that at least one of your independent variables(pace, FT%, Rebounds, Turnovers, or 3PT percentage) is related to win percentage. The relationship I found is unlikely to be due to random chance.
+
+-   The specific variables that matter in terms of whether or not the team wins are Pace(p-value = 0.03000), Rebounds( p = 0.00136), and Turnovers(p = 0.05580) All of these individual p values are less than 0.05. Free throws percentage and three point percentage are the two variables that do do not play a significant part in winning percentage.
+
+This means the predictors, taken together, explain a meaningful amount of variation in team winning percentage.
+
+The model explains:
+
+• Multiple R = 0.5726, which is moderate to fairly strong. This indicates a moderate positive relattionship between the models prediction and actual winning prediction. 0.57 suggests the model has meaninful predictive ability
+
+• Adjusted 𝑅 2 = 0.4835
+
+About 48.35 % of the variation in win percentage is explained by pace, FT%, rebounds, turnovers, and 3PT%.
+
+Your fitted model is:
+
+𝑤𝑖𝑛̂\_𝑝𝑐𝑡 = 1.8738 − 0.0275(𝑃𝑎𝑐𝑒) − 0.0498(𝐹𝑇𝑃𝐶𝑇) + 4.1315(𝑅𝑏𝑠) − 0.0536(𝑇𝑜𝑣)
+
+\+ 1.2766(𝑡ℎ𝑟𝑒𝑒_𝑝𝑡_𝑝𝑐𝑡)
+
+The model collectively explains a meaninful portion of team success, and the relationship is statistically significant.
+
+[**Interpretation of Predictors**]{.underline}
+
+**Pace**
+
+𝛽 = −0.0275, 𝑝 = 0.030
+
+𝑦 = −0.0275𝑥
+
+• Statistically significant at the 5% level.
+
+• Holding other variables constant, a 1-unit increase in pace is associated with about a 0.027 decrease in winning percentage.
+
+• Suggests faster-paced teams in this dataset tended to win slightly less.
+
+The typical prediction error in winning percentage is about 0.12.
+
+[**Key Takeaways**]{.underline}
+
+The most important predictors in your model are:
+
+1\. **Rebounds** → positive effect on winning
+
+2\. **Turnovers** → negative effect on winning
+
+3\. **Pace** → modest negative effect
+
+Meanwhile:
+
+Free throw percentage and three-point percentage were not significant in this sample.
+
+[Rebounds(Rbs)]{.underline}
+
+-   Strongest significant positive predictor
+
+More rebounds are associated with substantially higher winning percentage.
+
+[**Turnovers (Tov)**]{.underline}
+
+-   Significant negative relationship.
+
+-   More turnovers are associated with lower winning percentage.
+
+-   This aligns well with basketball expectations.
+
+[**Free Throw Percentage (FTPCT)**]{.underline}
+
+-   Not statistically significant.
+
+-   Essentially no detectable relationship with winning percentage after controlling for the other variables.
+
+[**Three-Point Percentage (three_pt_pct)**]{.underline}
+
+-   Positive coefficient, but not statistically significant.
+
+-   Suggests 3-point shooting percentage alone may not explain wins once rebounds, turnovers, and pace are included.
+
+-   This indicates the typical prediction error in winning percentage is about 0.12.
+
+-   **Key Takeaways**
+
+The most important predictors in your model are:
+
+1.  **Rebounds** → positive effect on winning
+
+2.  **Turnovers** → negative effect on winning
+
+3.  **Pace** → modest negative effect
+
+Meanwhile:
+
+-   Free throw percentage and three-point percentage were not significant in this sample.
+
+-   The model has moderate explanatory power overall.
+
+Why would the model still be statistically signicant becauise Adjusted R\^2 is far away from 1, although the p value is very low
+
+A low overall model p-value and a moderate/low Adjusted ![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAbCAMAAABP9I/XAAAAAXNSR0IArs4c6QAAAGNQTFRFAAAAAAAAAAArAABVACsrACtVACuAAFWqKwAAKyuAK1WAK1WqK4DUVQAAVSuAVYDUVarUVar/gCsAgFUrgNT/qlUAqlUrqtT/qv//1IAr1P///6pV/9SA/9Sq/9TU//+q///UP6ExoQAAAAF0Uk5TAEDm2GYAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAAAZdEVYdFNvZnR3YXJlAE1pY3Jvc29mdCBPZmZpY2V/7TVxAAAAnElEQVQoU9VQyxLCIAxMrI/6wCq1KIUK//+VJgEchunVg3uAzRI2CwA/wDIi7l6tcdQDLOqwOm8SOShkbG+5J6i7MK/2M8QJUwXmknbfM/F9sjTnfMtJX5a/KtiOEyUTR37hOhOLmujbIDul8VQXeno2Ydl65Ql28yBnXmqINdiSuhwF+QInEytYZDnwSys4CkR61HhsszTR/qH8ANdmB40wg9QWAAAAAElFTkSuQmCC)measure **different things**, so they can absolutely occur together.
+
+**What the Overall F-test p-value Means**
+
+Your model’s p-value:
+
+comes from the overall F-test:
+
+-   Null hypothesis
+
+-   Alternative:\
+    At least one predictor has a nonzero relationship with win_pct.
+
+Because the p-value is very small, you reject the null hypothesis and conclude:
+
+The predictors collectively improve prediction beyond a model with no predictors.
+
+That only tells you the model has **real explanatory power**, not that it explains *all* or even *most* of the variance.
+
+**What Adjusted** ![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABcAAAAcCAMAAAC9M9RRAAAAAXNSR0IArs4c6QAAAF1QTFRFAAAAAAAAAAArAABVACsrACtVACuAAFWAAFWqKwAAKysAKytVK4DUVQAAVSsrVYDUVar/gCsAgFUrgNT/qlUAqoBVqv//1IAr1KpV1NT/1P///6pV/9SA//+q///UwwXWnQAAAAF0Uk5TAEDm2GYAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAAAZdEVYdFNvZnR3YXJlAE1pY3Jvc29mdCBPZmZpY2V/7TVxAAAAoUlEQVQoU9WP2xqCIBCE2bIDJp0ksQTe/zGb3VW+Um+7aK5gdvlnMOYnyo+aaNcu2Mk1JtD+tRYa7bZb8wc6ip1vJKouuuUnTLRMDEQN26FQ4ONlcpIXTwU+yKb66dyafNeinjY46NRzEl8lF8jesg0kpAl6psNzVpoBWVlfQsEr0/U3RYrXP3xq7OfGtDIChjdRUL47CWBBY7xInhX5p+sbRIkH+tIIYzMAAAAASUVORK5CYII=)**Means**
+
+Your adjusted ![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAbCAMAAABP9I/XAAAAAXNSR0IArs4c6QAAAGNQTFRFAAAAAAAAAAArAABVACsrACtVACuAAFWqKwAAKyuAK1WAK1WqK4DUVQAAVSuAVYDUVarUVar/gCsAgFUrgNT/qlUAqlUrqtT/qv//1IAr1P///6pV/9SA/9Sq/9TU//+q///UP6ExoQAAAAF0Uk5TAEDm2GYAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAAAZdEVYdFNvZnR3YXJlAE1pY3Jvc29mdCBPZmZpY2V/7TVxAAAAnElEQVQoU9VQyxLCIAxMrI/6wCq1KIUK//+VJgEchunVg3uAzRI2CwA/wDIi7l6tcdQDLOqwOm8SOShkbG+5J6i7MK/2M8QJUwXmknbfM/F9sjTnfMtJX5a/KtiOEyUTR37hOhOLmujbIDul8VQXeno2Ydl65Ql28yBnXmqINdiSuhwF+QInEytYZDnwSys4CkR61HhsszTR/qH8ANdmB40wg9QWAAAAAElFTkSuQmCC):
+
+means:
+
+After accounting for the number of predictors, the model explains about 48% of the variability in winning percentage.
+
+That is actually fairly reasonable for real-world sports data.
+
+An ![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAbCAMAAABP9I/XAAAAAXNSR0IArs4c6QAAAGNQTFRFAAAAAAAAAAArAABVACsrACtVACuAAFWqKwAAKyuAK1WAK1WqK4DUVQAAVSuAVYDUVarUVar/gCsAgFUrgNT/qlUAqlUrqtT/qv//1IAr1P///6pV/9SA/9Sq/9TU//+q///UP6ExoQAAAAF0Uk5TAEDm2GYAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAAAZdEVYdFNvZnR3YXJlAE1pY3Jvc29mdCBPZmZpY2V/7TVxAAAAnElEQVQoU9VQyxLCIAxMrI/6wCq1KIUK//+VJgEchunVg3uAzRI2CwA/wDIi7l6tcdQDLOqwOm8SOShkbG+5J6i7MK/2M8QJUwXmknbfM/F9sjTnfMtJX5a/KtiOEyUTR37hOhOLmujbIDul8VQXeno2Ydl65Ql28yBnXmqINdiSuhwF+QInEytYZDnwSys4CkR61HhsszTR/qH8ANdmB40wg9QWAAAAAElFTkSuQmCC)does **not** need to be close to 1 for a model to be statistically significant.
+
+**Why Both Can Happen Together**
+
+These two ideas coexist because:
+
+-   Statistical significance asks:
+
+“Is there evidence of a relationship?”
+
+-   
+
+“How much variation do we explain?”
+
+A model can explain only a moderate amount of variation but still do so very consistently.
+
+**Intuition**
+
+Imagine this:
+
+-   Winning percentage depends on many things not in your model:
+
+    -   defense,
+
+    -   injuries,
+
+    -   coaching,
+
+    -   player availability,
+
+    -   schedule strength,
+
+    -   clutch performance,
+
+    -   chemistry,
+
+    -   etc.
+
+So even a good basketball model may never get near:
+
+But if rebounds and turnovers consistently affect winning, the regression detects that relationship clearly, giving a low p-value.
+
+**Important Point**
+
+A statistically significant model does **not** imply:
+
+-   excellent prediction,
+
+-   high practical importance,
+
+-   or near-perfect fit.
+
+It only means:
+
+The relationship is unlikely to be due to random chance.
+
+In your case:
+
+-   The model is statistically meaningful,
+
+-   but still leaves about half the variability unexplained,
+
+-   which is normal in sports analytics.
+
+#### Is there a relationship between three point percentage and team winning percentage in NBA basketball?
+
+```model <- lm(win_pct ~ three_pt_pct, data = nba_data)
+summary(model)
+
+
+
+str(nba_data)
+names(nba_data)
+ 
+
+```
+
+```{r}
+# Create a scatterplot with the fitted regression line
+
+
+ggplot(nba_data, aes(x = three_pt_pct, y = win_pct)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = TRUE)
+```
+
+#### [Summary]{.underline}
+
+Equation of the line is:
+
+y = 1.87376 - 0.02751(Pace) - 0.04981(FTPCT) + 0.04131(Rbs) -b(44) - 0.05359(Tov) +
+
+1.27657(three_pt_pct).
+
+For example during the 25-26 season the Denver Nuggets has the following statistics.
+
+WinPct = .732, Pace = 102.3, FTPCt = .808, Rbs = 44, Tov = 12.9, 3p% = .396
+
+y = 0.659 or 65.9% which is their winning percentage for 25-26 season
+
+Note- The coefficient for the rbs variable should be (0.0413153).
+
+```{r}
+nba_data$predicted <- predict(model)
+
+ggplot(nba_data, aes(x = predicted, y = win_pct)) +
+  geom_point() +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  labs(
+    title = "Predicted vs Actual Win Percentage",
+    x = "Predicted Win %",
+    y = "Actual Win %"
+  ) +
+  theme_minimal()
+```
+
+#### Summary
+
+This above model generates predicted win percentages from the fitted model. It stores then into a new column called "predicted".
+
+```{r}
+library(ggrepel)
+
+ggplot(nba_data, aes(x = predicted, y = win_pct, label = teams)) +
+  geom_point() +
+  geom_text_repel() +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  labs(
+    title = "Predicted vs Actual Win Percentage",
+    x = "Predicted Win %",
+    y = "Actual Win %"
+  ) +
+  theme_minimal()
+```
+
+```{r}
+library(ggplot2)
+library(ggrepel)
+
+ggplot(nba_data, aes(x = predicted, y = win_pct, label = teams)) +
+  geom_point(size = 3) +
+  geom_text_repel(max.overlaps = Inf) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  labs(
+    title = "Predicted vs Actual Win Percentage",
+    subtitle = "NBA Team Performance Model",
+    x = "Predicted Win %",
+    y = "Actual Win %"
+  ) +
+  theme_minimal()
+```

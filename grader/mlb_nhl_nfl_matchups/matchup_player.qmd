@@ -1,0 +1,370 @@
+---
+title: "Player Matchup Report"
+author: "Pat Rankin"
+format: html
+editor: visual
+execute:
+  message: false
+  warning: false
+---
+
+```{r}
+#| label: packages
+
+# install.packages("nflreadr")
+# install.packages("baseballr")
+# pak::pak("sportsdataverse/hoopR")
+# pak::pak("sportsdataverse/hockeyR")
+# install.packages("dplyr")
+# install.packages("ggplot2")
+# install.packages("tidyr")
+
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+```
+
+## ⚙️ Your Settings — Change These Before Rendering
+
+```{r}
+#| label: settings
+
+# ============================================================
+#  FILL IN YOUR INFO BELOW — this is the only section
+#  you need to change each time you run this report.
+# ============================================================
+
+# Which sport?
+# Choose ONE of: "NBA"  |  "NCAA"  |  "NFL"  |  "NHL"  |  "MLB"
+my_sport <- "NBA"
+
+# Player 1 full name (exactly as the data source lists it)
+player_1 <- "LeBron James"
+
+# Player 2 full name
+player_2 <- "Stephen Curry"
+
+# Position / type — used to compare the right stats.
+# NBA/NCAA: "Guard"  |  "Wing/Forward"  |  "Big/Center"
+# NFL:      "QB"     |  "RB"            |  "WR"          | "TE"
+# NHL:      "Skater" |  "Goalie"
+# MLB:      "Batter" |  "Pitcher"
+player_type <- "Wing/Forward"
+
+# Which season?
+# NBA/NCAA: year season ENDS  (2025-26 = 2026)
+# NFL: year season STARTS     (2024-25 = 2024)
+# NHL: full string            ("20242025")
+# MLB: calendar year          (2024)
+season_year <- 2026
+
+# Season label for display only
+season_label <- "2025-26"
+
+# ============================================================
+#  THAT'S IT — scroll down to render and read your report.
+# ============================================================
+```
+
+```{r}
+#| label: ingest
+#| include: false
+
+load_player <- function(player_name, sport, season, p_type) {
+
+  if (sport == "NBA") {
+    library(hoopR)
+    box <- hoopR::load_nba_player_box(seasons = season) %>%
+      filter(did_not_play == FALSE | is.na(did_not_play))
+    d <- box %>% filter(athlete_display_name == player_name)
+    if (nrow(d)==0) d <- box %>% filter(grepl(player_name, athlete_display_name, ignore.case=TRUE))
+    d %>% mutate(
+      pts=as.numeric(points), reb=as.numeric(rebounds), ast=as.numeric(assists),
+      stl=as.numeric(steals), blk=as.numeric(blocks),  tov=as.numeric(turnovers),
+      fgm=as.numeric(field_goals_made), fga=as.numeric(field_goals_attempted),
+      ftm=as.numeric(free_throws_made), fta=as.numeric(free_throws_attempted),
+      tpm=as.numeric(three_point_field_goals_made),
+      tpa=as.numeric(three_point_field_goals_attempted),
+      min=as.numeric(minutes)
+    )
+
+  } else if (sport == "NCAA") {
+    library(hoopR)
+    box <- hoopR::load_mbb_player_box(seasons = season) %>%
+      filter(did_not_play == FALSE | is.na(did_not_play))
+    d <- box %>% filter(athlete_display_name == player_name)
+    if (nrow(d)==0) d <- box %>% filter(grepl(player_name, athlete_display_name, ignore.case=TRUE))
+    d %>% mutate(
+      pts=as.numeric(points), reb=as.numeric(rebounds), ast=as.numeric(assists),
+      stl=as.numeric(steals), blk=as.numeric(blocks),  tov=as.numeric(turnovers),
+      fgm=as.numeric(field_goals_made), fga=as.numeric(field_goals_attempted),
+      ftm=as.numeric(free_throws_made), fta=as.numeric(free_throws_attempted),
+      tpm=as.numeric(three_point_field_goals_made),
+      tpa=as.numeric(three_point_field_goals_attempted),
+      min=as.numeric(minutes)
+    )
+
+  } else if (sport == "NFL") {
+    library(nflreadr)
+    stats <- nflreadr::load_player_stats(seasons=season, stat_type="offense") %>%
+      filter(season_type=="REG")
+    d <- stats %>% filter(tolower(player_display_name)==tolower(player_name))
+    if (nrow(d)==0) d <- stats %>% filter(grepl(player_name, player_display_name, ignore.case=TRUE))
+    d
+
+  } else if (sport == "NHL") {
+    library(hockeyR)
+    if (p_type == "Goalie") {
+      all <- hockeyR::get_goalie_stats_hr(season=season, type="regular")
+    } else {
+      all <- hockeyR::get_skater_stats_hr(season=season, type="regular")
+    }
+    d <- all %>% filter(tolower(player)==tolower(player_name))
+    if (nrow(d)==0) d <- all %>% filter(grepl(player_name, player, ignore.case=TRUE))
+    d %>% slice(1)
+
+  } else if (sport == "MLB") {
+    library(baseballr)
+    if (p_type == "Batter") {
+      all <- baseballr::fg_batter_leaders(startseason=as.character(season),
+                                           endseason=as.character(season), qual=1)
+      d <- all %>% filter(tolower(playerName)==tolower(player_name))
+      if (nrow(d)==0) d <- all %>% filter(grepl(player_name, playerName, ignore.case=TRUE))
+    } else {
+      all <- baseballr::fg_pitcher_leaders(startseason=as.character(season),
+                                            endseason=as.character(season), qual=1)
+      d <- all %>% filter(tolower(playerName)==tolower(player_name))
+      if (nrow(d)==0) d <- all %>% filter(grepl(player_name, playerName, ignore.case=TRUE))
+    }
+    d %>% slice(1)
+  }
+}
+
+d1 <- load_player(player_1, my_sport, season_year, player_type)
+d2 <- load_player(player_2, my_sport, season_year, player_type)
+
+if (nrow(d1)==0) stop("No data found for '", player_1, "'")
+if (nrow(d2)==0) stop("No data found for '", player_2, "'")
+```
+
+```{r}
+#| label: build-stats
+#| include: false
+
+# Build per-game averages for each player depending on sport / type
+get_pg_stats <- function(d, sport, p_type) {
+
+  if (sport %in% c("NBA","NCAA")) {
+    n <- nrow(d)
+    list(
+      games    = n,
+      pts      = mean(d$pts, na.rm=TRUE),
+      reb      = mean(d$reb, na.rm=TRUE),
+      ast      = mean(d$ast, na.rm=TRUE),
+      stl      = mean(d$stl, na.rm=TRUE),
+      blk      = mean(d$blk, na.rm=TRUE),
+      tov      = mean(d$tov, na.rm=TRUE),
+      fg_pct   = mean(d$fgm/pmax(d$fga,1)*100, na.rm=TRUE),
+      three_pct= mean(ifelse(d$tpa>0, d$tpm/d$tpa*100, NA), na.rm=TRUE),
+      ft_pct   = mean(ifelse(d$fta>0, d$ftm/d$fta*100, NA), na.rm=TRUE),
+      min      = mean(d$min, na.rm=TRUE)
+    )
+  } else if (sport == "NFL") {
+    n <- nrow(d)
+    list(
+      games      = n,
+      pass_yards = mean(d$passing_yards,   na.rm=TRUE),
+      pass_tds   = mean(d$passing_tds,     na.rm=TRUE),
+      int        = mean(d$interceptions,   na.rm=TRUE),
+      comp_pct   = mean(d$completions/pmax(d$attempts,1)*100, na.rm=TRUE),
+      qbr        = mean(d$passer_rating,   na.rm=TRUE),
+      rush_yards = mean(d$rushing_yards,   na.rm=TRUE),
+      recv_yards = mean(d$receiving_yards, na.rm=TRUE),
+      recv_tds   = mean(d$receiving_tds,   na.rm=TRUE),
+      receptions = mean(d$receptions,      na.rm=TRUE)
+    )
+  } else if (sport == "NHL") {
+    gp <- as.numeric(d$games_played)
+    if (p_type == "Goalie") {
+      list(games=gp, sv_pct=as.numeric(d$save_pct)*100,
+           gaa=as.numeric(d$goals_against_avg), wins=as.numeric(d$wins),
+           so=as.numeric(d$shutouts))
+    } else {
+      list(games=gp,
+           gpg=as.numeric(d$goals)/gp, apg=as.numeric(d$assists)/gp,
+           ptpg=as.numeric(d$points)/gp,
+           pm=as.numeric(d$plus_minus), shot_pct=as.numeric(d$shot_pct),
+           ppp=as.numeric(d$pp_points))
+    }
+  } else if (sport == "MLB") {
+    if (p_type == "Batter") {
+      list(games=as.numeric(d$G),
+           avg=as.numeric(d$AVG), obp=as.numeric(d$OBP),
+           slg=as.numeric(d$SLG), ops=as.numeric(d$OPS),
+           woba=as.numeric(d$wOBA), hr=as.numeric(d$HR),
+           rbi=as.numeric(d$RBI))
+    } else {
+      list(games=as.numeric(d$G),
+           era=as.numeric(d$ERA), whip=as.numeric(d$WHIP),
+           fip=as.numeric(d$FIP), k9=as.numeric(d$`K/9`),
+           bb9=as.numeric(d$`BB/9`))
+    }
+  }
+}
+
+s1 <- get_pg_stats(d1, my_sport, player_type)
+s2 <- get_pg_stats(d2, my_sport, player_type)
+
+# Build comparison data frame
+if (my_sport %in% c("NBA","NCAA")) {
+  stat_names <- c("Points/G","Rebounds/G","Assists/G","Steals/G","Blocks/G",
+                  "Turnovers/G","FG%","3-Point%","FT%","Minutes/G")
+  v1 <- c(s1$pts,s1$reb,s1$ast,s1$stl,s1$blk,s1$tov,s1$fg_pct,s1$three_pct,s1$ft_pct,s1$min)
+  v2 <- c(s2$pts,s2$reb,s2$ast,s2$stl,s2$blk,s2$tov,s2$fg_pct,s2$three_pct,s2$ft_pct,s2$min)
+  lower_better <- c(FALSE,FALSE,FALSE,FALSE,FALSE,TRUE,FALSE,FALSE,FALSE,FALSE)
+  fmt <- c("%.1f","%.1f","%.1f","%.1f","%.1f","%.1f","%.1f%%","%.1f%%","%.1f%%","%.1f")
+
+} else if (my_sport == "NFL") {
+  if (player_type == "QB") {
+    stat_names <- c("Pass Yards/G","Pass TDs/G","INTs/G","Completion%","Passer Rating","Rush Yards/G")
+    v1 <- c(s1$pass_yards,s1$pass_tds,s1$int,s1$comp_pct,s1$qbr,s1$rush_yards)
+    v2 <- c(s2$pass_yards,s2$pass_tds,s2$int,s2$comp_pct,s2$qbr,s2$rush_yards)
+    lower_better <- c(FALSE,FALSE,TRUE,FALSE,FALSE,FALSE)
+    fmt <- c("%.1f","%.2f","%.2f","%.1f%%","%.1f","%.1f")
+  } else if (player_type == "RB") {
+    stat_names <- c("Rush Yards/G","Rush TDs/G","Receptions/G","Recv Yards/G")
+    v1 <- c(s1$rush_yards,s1$rush_tds %||% NA,s1$receptions,s1$recv_yards)
+    v2 <- c(s2$rush_yards,s2$rush_tds %||% NA,s2$receptions,s2$recv_yards)
+    lower_better <- c(FALSE,FALSE,FALSE,FALSE)
+    fmt <- c("%.1f","%.2f","%.1f","%.1f")
+  } else {
+    stat_names <- c("Recv Yards/G","Recv TDs/G","Receptions/G","Catch Rate")
+    v1 <- c(s1$recv_yards,s1$recv_tds,s1$receptions,s1$catch_rate %||% NA)
+    v2 <- c(s2$recv_yards,s2$recv_tds,s2$receptions,s2$catch_rate %||% NA)
+    lower_better <- c(FALSE,FALSE,FALSE,FALSE)
+    fmt <- c("%.1f","%.2f","%.1f","%.1f%%")
+  }
+
+} else if (my_sport == "NHL") {
+  if (player_type == "Goalie") {
+    stat_names   <- c("Save %","GAA","Wins","Shutouts")
+    v1 <- c(s1$sv_pct,s1$gaa,s1$wins,s1$so)
+    v2 <- c(s2$sv_pct,s2$gaa,s2$wins,s2$so)
+    lower_better <- c(FALSE,TRUE,FALSE,FALSE)
+    fmt <- c("%.1f%%","%.2f","%.0f","%.0f")
+  } else {
+    stat_names   <- c("Goals/G","Assists/G","Points/G","Plus/Minus","Shot%","PP Points")
+    v1 <- c(s1$gpg,s1$apg,s1$ptpg,s1$pm,s1$shot_pct,s1$ppp)
+    v2 <- c(s2$gpg,s2$apg,s2$ptpg,s2$pm,s2$shot_pct,s2$ppp)
+    lower_better <- c(FALSE,FALSE,FALSE,FALSE,FALSE,FALSE)
+    fmt <- c("%.2f","%.2f","%.2f","%+.0f","%.1f%%","%.0f")
+  }
+
+} else if (my_sport == "MLB") {
+  if (player_type == "Batter") {
+    stat_names   <- c("AVG","OBP","SLG","OPS","wOBA","HR","RBI")
+    v1 <- c(s1$avg,s1$obp,s1$slg,s1$ops,s1$woba,s1$hr,s1$rbi)
+    v2 <- c(s2$avg,s2$obp,s2$slg,s2$ops,s2$woba,s2$hr,s2$rbi)
+    lower_better <- rep(FALSE,7)
+    fmt <- c("%.3f","%.3f","%.3f","%.3f","%.3f","%.0f","%.0f")
+  } else {
+    stat_names   <- c("ERA","WHIP","FIP","K/9","BB/9")
+    v1 <- c(s1$era,s1$whip,s1$fip,s1$k9,s1$bb9)
+    v2 <- c(s2$era,s2$whip,s2$fip,s2$k9,s2$bb9)
+    lower_better <- c(TRUE,TRUE,TRUE,FALSE,TRUE)
+    fmt <- c("%.2f","%.2f","%.2f","%.1f","%.1f")
+  }
+}
+
+# Format values for table
+format_val <- function(v, f) ifelse(is.na(v),"N/A", sprintf(f, v))
+vals_1_fmt <- mapply(format_val, v1, fmt)
+vals_2_fmt <- mapply(format_val, v2, fmt)
+
+comparison_tbl <- data.frame(
+  Statistic = stat_names,
+  !!player_1 := vals_1_fmt,
+  !!player_2 := vals_2_fmt
+)
+
+# Advantage column
+advantage <- mapply(function(a, b, lb) {
+  if (is.na(a) | is.na(b)) return("N/A")
+  if (!lb) { if (a > b) player_1 else if (b > a) player_2 else "Even" }
+  else      { if (a < b) player_1 else if (b < a) player_2 else "Even" }
+}, v1, v2, lower_better)
+
+comparison_tbl$Edge <- advantage
+
+# Chart data (numeric stats only, no %)
+chart_df <- data.frame(Stat=stat_names, P1=v1, P2=v2) %>%
+  filter(!is.na(P1), !is.na(P2)) %>%
+  pivot_longer(cols=c(P1,P2), names_to="Player", values_to="Value") %>%
+  mutate(Player=recode(Player, P1=player_1, P2=player_2))
+
+p1_adv <- sum(advantage == player_1, na.rm=TRUE)
+p2_adv <- sum(advantage == player_2, na.rm=TRUE)
+```
+
+## `r player_1` vs. `r player_2` — `r my_sport` | `r season_label`
+
+**Position / Type:** `r player_type` | **Games — `r player_1`:** `r s1$games` | **`r player_2`:** `r s2$games`
+
+---
+
+## Head-to-Head Stats
+
+```{r}
+#| label: comparison-table
+
+knitr::kable(comparison_tbl, align = c("l","r","r","c"))
+```
+
+**Category advantages:** `r player_1` **`r p1_adv`** | `r player_2` **`r p2_adv`**
+
+---
+
+## Side-by-Side Chart
+
+```{r}
+#| label: comparison-chart
+#| fig-height: 6
+
+ggplot(chart_df, aes(x = Stat, y = Value, fill = Player)) +
+  geom_col(position = "dodge", width = 0.65) +
+  scale_fill_manual(values = c("#3498db","#e74c3c")) +
+  labs(
+    title    = paste(player_1, "vs.", player_2),
+    subtitle = paste(my_sport, season_label, "|", player_type),
+    x        = NULL, y = "Value", fill = NULL
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "top",
+        axis.text.x = element_text(angle = 30, hjust = 1))
+```
+
+```{r}
+#| label: advantage-bar
+
+adv_df <- data.frame(
+  Stat       = stat_names,
+  Advantage  = advantage
+) %>%
+  filter(Advantage != "N/A") %>%
+  mutate(
+    Winner = factor(Advantage, levels = c(player_1, "Even", player_2))
+  )
+
+ggplot(adv_df, aes(x = Stat, fill = Winner)) +
+  geom_bar(width = 0.6) +
+  scale_fill_manual(values = setNames(c("#3498db","#95a5a6","#e74c3c"),
+                                       c(player_1,"Even",player_2))) +
+  labs(
+    title    = "Category Edge Summary",
+    subtitle = paste(player_1, "vs.", player_2),
+    x        = NULL, y = "Count", fill = NULL
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "top",
+        axis.text.x = element_text(angle = 30, hjust = 1))
+```

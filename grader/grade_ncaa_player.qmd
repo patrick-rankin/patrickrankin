@@ -1,0 +1,313 @@
+---
+title: "NCAA Player Season Grade Report"
+author: "Pat Rankin"
+format: html
+editor: visual
+execute:
+  message: false
+  warning: false
+---
+
+```{r}
+#| label: packages
+library(hoopR)
+library(dplyr)
+library(readr)
+library(ggplot2)
+library(tidyr)
+```
+
+## ⚙️ Your Settings — Change These Before Rendering
+
+```{r}
+#| label: settings
+
+# ============================================================
+#  FILL IN YOUR INFO BELOW — this is the only section
+#  you need to change each time you run this report.
+# ============================================================
+
+# Which player do you want to grade?
+# Use the player's full name exactly as ESPN lists it (First Last).
+# Examples: "Cooper Flagg", "Zach Edey", "Hunter Dickinson"
+my_player <- "Cooper Flagg"
+
+# Which season? Use the year the season ENDS.
+# Example: the 2024-25 season is written as 2025.
+season_year <- 2025
+
+# Season label shown in the report (for display only)
+season_label <- "2024-25"
+
+# Player position — used to set rebounding and assist benchmarks.
+# Choose ONE of: "Guard"  |  "Wing/Forward"  |  "Big/Center"
+player_position <- "Wing/Forward"
+
+# ============================================================
+#  THAT'S IT — scroll down to render and read your report.
+# ============================================================
+```
+
+```{r}
+#| label: ingest
+#| include: false
+
+player_box <- hoopR::load_mbb_player_box(seasons = season_year)
+
+player_data <- player_box %>%
+  filter(athlete_display_name == my_player,
+         did_not_play == FALSE | is.na(did_not_play))
+
+if (nrow(player_data) == 0) {
+  stop("No games found for '", my_player, "'. Check spelling or run: ",
+       "player_box %>% filter(grepl(my_player, athlete_display_name, ignore.case=TRUE)) ",
+       "%>% distinct(athlete_display_name, team_location) %>% print(n=50)")
+}
+
+player_name_full <- player_data$athlete_display_name[1]
+team_name_full   <- player_data$team_display_name[1]
+games_played     <- nrow(player_data)
+```
+
+```{r}
+#| label: averages
+#| include: false
+
+player_data <- player_data %>%
+  mutate(
+    pts  = as.numeric(points),
+    reb  = as.numeric(rebounds),
+    ast  = as.numeric(assists),
+    stl  = as.numeric(steals),
+    blk  = as.numeric(blocks),
+    tov  = as.numeric(turnovers),
+    fgm  = as.numeric(field_goals_made),
+    fga  = as.numeric(field_goals_attempted),
+    ftm  = as.numeric(free_throws_made),
+    fta  = as.numeric(free_throws_attempted),
+    tpm  = as.numeric(three_point_field_goals_made),
+    tpa  = as.numeric(three_point_field_goals_attempted),
+    min  = as.numeric(minutes),
+    game_date = as.Date(game_date)
+  ) %>%
+  mutate(
+    fg_pct    = ifelse(fga > 0, fgm / fga * 100, NA),
+    three_pct = ifelse(tpa > 0, tpm / tpa * 100, NA),
+    ft_pct    = ifelse(fta > 0, ftm / fta * 100, NA),
+    efficiency = pts + reb + ast + stl + blk - tov - (fga - fgm)
+  )
+
+avg <- player_data %>%
+  summarise(
+    pts       = mean(pts,       na.rm = TRUE),
+    reb       = mean(reb,       na.rm = TRUE),
+    ast       = mean(ast,       na.rm = TRUE),
+    stl       = mean(stl,       na.rm = TRUE),
+    blk       = mean(blk,       na.rm = TRUE),
+    tov       = mean(tov,       na.rm = TRUE),
+    fg_pct    = mean(fg_pct,    na.rm = TRUE),
+    three_pct = mean(three_pct, na.rm = TRUE),
+    ft_pct    = mean(ft_pct,    na.rm = TRUE),
+    min       = mean(min,       na.rm = TRUE),
+    efficiency = mean(efficiency, na.rm = TRUE)
+  )
+```
+
+```{r}
+#| label: grading
+#| include: false
+
+score_to_letter <- function(score) {
+  if      (score >= 4.0) "A+"
+  else if (score >= 3.7) "A"
+  else if (score >= 3.3) "A-"
+  else if (score >= 3.0) "B+"
+  else if (score >= 2.7) "B"
+  else if (score >= 2.3) "B-"
+  else if (score >= 2.0) "C+"
+  else if (score >= 1.7) "C"
+  else if (score >= 1.3) "C-"
+  else if (score >= 1.0) "D+"
+  else if (score >= 0.7) "D"
+  else if (score >= 0.3) "D-"
+  else                   "F"
+}
+
+grade_stat <- function(value, thresholds, lower_is_better = FALSE) {
+  if (lower_is_better) {
+    if      (value <= thresholds["A"]) gpa <- 4.0
+    else if (value <= thresholds["B"]) gpa <- 3.0
+    else if (value <= thresholds["C"]) gpa <- 2.0
+    else if (value <= thresholds["D"]) gpa <- 1.0
+    else                               gpa <- 0.0
+  } else {
+    if      (value >= thresholds["A"]) gpa <- 4.0
+    else if (value >= thresholds["B"]) gpa <- 3.0
+    else if (value >= thresholds["C"]) gpa <- 2.0
+    else if (value >= thresholds["D"]) gpa <- 1.0
+    else                               gpa <- 0.0
+  }
+  score_to_letter(gpa)
+}
+
+letter_to_gpa <- function(l) {
+  switch(l,
+    "A+"=4.3,"A"=4.0,"A-"=3.7,
+    "B+"=3.3,"B"=3.0,"B-"=2.7,
+    "C+"=2.3,"C"=2.0,"C-"=1.7,
+    "D+"=1.3,"D"=1.0,"D-"=0.7,"F"=0.0)
+}
+
+reb_thresholds <- switch(player_position,
+  "Guard"        = c(A=6,  B=4,  C=3,  D=2),
+  "Wing/Forward" = c(A=8,  B=6,  C=4,  D=2),
+  "Big/Center"   = c(A=10, B=8,  C=6,  D=4)
+)
+ast_thresholds <- switch(player_position,
+  "Guard"        = c(A=6,  B=4,   C=2.5, D=1.5),
+  "Wing/Forward" = c(A=4,  B=2.5, C=1.5, D=0.8),
+  "Big/Center"   = c(A=2.5,B=1.5, C=0.8, D=0.3)
+)
+
+grade_scoring    <- grade_stat(avg$pts,              c(A=20, B=16, C=12, D=8))
+grade_rebounding <- grade_stat(avg$reb,              reb_thresholds)
+grade_assists    <- grade_stat(avg$ast,              ast_thresholds)
+grade_defense    <- grade_stat(avg$stl + avg$blk,   c(A=3.0,B=2.0,C=1.2,D=0.6))
+grade_turnovers  <- grade_stat(avg$tov,              c(A=1.5,B=2.5,C=3.5,D=4.5), lower_is_better=TRUE)
+grade_fg         <- grade_stat(avg$fg_pct,           c(A=50, B=45, C=40, D=35))
+grade_ft         <- grade_stat(avg$ft_pct,           c(A=80, B=73, C=65, D=55))
+grade_efficiency <- grade_stat(avg$efficiency,       c(A=20, B=15, C=10, D=5))
+
+all_grades <- c(grade_scoring, grade_rebounding, grade_assists, grade_defense,
+                grade_turnovers, grade_fg, grade_ft, grade_efficiency)
+weights    <- c(0.22, 0.15, 0.13, 0.12, 0.10, 0.12, 0.08, 0.08)
+
+overall_gpa   <- sum(sapply(all_grades, letter_to_gpa) * weights)
+overall_grade <- score_to_letter(overall_gpa)
+
+grade_df <- data.frame(
+  Category = c("Scoring","Rebounding","Assists","Defense (stl+blk)",
+               "Ball Security","Field Goal %","Free Throw %","Efficiency"),
+  Grade    = all_grades,
+  GPA      = sapply(all_grades, letter_to_gpa)
+)
+
+grade_df$Grade_Group <- case_when(
+  grade_df$GPA >= 3.7 ~ "A",
+  grade_df$GPA >= 2.7 ~ "B",
+  grade_df$GPA >= 1.7 ~ "C",
+  grade_df$GPA >= 0.7 ~ "D",
+  TRUE                ~ "F"
+)
+```
+
+## `r player_name_full` — `r team_name_full` | `r season_label`
+
+**Position:** `r player_position` | **Games Graded:** `r games_played` | **Minutes Per Game:** `r sprintf("%.1f", avg$min)`
+
+**Overall Season Grade: `r overall_grade`**
+
+---
+
+## Category Grades
+
+```{r}
+#| label: grade-chart
+
+grade_colors <- c("A"="#2ecc71","B"="#3498db","C"="#f39c12","D"="#e67e22","F"="#e74c3c")
+
+ggplot(grade_df, aes(x = reorder(Category, GPA), y = GPA, fill = Grade_Group)) +
+  geom_col(width = 0.7) +
+  geom_text(aes(label = Grade), hjust = -0.2, fontface = "bold", size = 4.5) +
+  scale_fill_manual(values = grade_colors, name = "Grade") +
+  scale_y_continuous(limits = c(0, 5.2), breaks = c(0,1,2,3,4)) +
+  coord_flip() +
+  labs(
+    title    = paste(player_name_full, "— Category Grades"),
+    subtitle = paste(season_label, "NCAA Season |", player_position),
+    x        = NULL,
+    y        = "Grade Points (4.0 scale)"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "right")
+```
+
+## Scoring Trend
+
+```{r}
+#| label: scoring-trend
+
+trend_data <- player_data %>%
+  arrange(game_date) %>%
+  mutate(game_num = row_number())
+
+ggplot(trend_data, aes(x = game_num, y = pts)) +
+  geom_line(color = "#3498db", linewidth = 1) +
+  geom_point(color = "#3498db", size = 2.5) +
+  geom_hline(yintercept = avg$pts, linetype = "dashed", color = "#e74c3c", linewidth = 0.8) +
+  annotate("text", x = max(trend_data$game_num), y = avg$pts + 0.8,
+           label = paste("Avg:", sprintf("%.1f", avg$pts)), color = "#e74c3c", hjust = 1, size = 3.5) +
+  labs(
+    title    = paste(player_name_full, "— Points Per Game"),
+    subtitle = "Red dashed line = season average",
+    x        = "Game Number",
+    y        = "Points"
+  ) +
+  theme_minimal(base_size = 13)
+```
+
+## Game-by-Game Stats: Points, Rebounds, Assists
+
+```{r}
+#| label: pra-chart
+
+pra_long <- trend_data %>%
+  select(game_num, pts, reb, ast) %>%
+  pivot_longer(cols = c(pts, reb, ast), names_to = "Stat", values_to = "Value") %>%
+  mutate(Stat = recode(Stat, pts="Points", reb="Rebounds", ast="Assists"))
+
+ggplot(pra_long, aes(x = game_num, y = Value, color = Stat)) +
+  geom_line(linewidth = 0.9) +
+  geom_point(size = 2) +
+  scale_color_manual(values = c("Points"="#3498db","Rebounds"="#2ecc71","Assists"="#e67e22")) +
+  labs(
+    title    = paste(player_name_full, "— Points / Rebounds / Assists by Game"),
+    x        = "Game Number",
+    y        = "Count",
+    color    = NULL
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "top")
+```
+
+## Key Stats Summary
+
+```{r}
+#| label: stats-table
+
+summary_tbl <- data.frame(
+  Statistic = c("Points Per Game","Rebounds Per Game","Assists Per Game",
+                "Steals Per Game","Blocks Per Game","Turnovers Per Game",
+                "Field Goal %","Three-Point %","Free Throw %","Efficiency Index"),
+  Value     = c(
+    sprintf("%.1f", avg$pts),
+    sprintf("%.1f", avg$reb),
+    sprintf("%.1f", avg$ast),
+    sprintf("%.1f", avg$stl),
+    sprintf("%.1f", avg$blk),
+    sprintf("%.1f", avg$tov),
+    sprintf("%.1f%%", avg$fg_pct),
+    sprintf("%.1f%%", avg$three_pct),
+    sprintf("%.1f%%", avg$ft_pct),
+    sprintf("%.1f",  avg$efficiency)
+  )
+)
+
+knitr::kable(summary_tbl, align = c("l","r"), col.names = c("Statistic","Season Avg"))
+```
+
+## How the Grade Is Calculated
+
+Each category is graded against NCAA Division I starter averages and converted to a 4.0 scale. Scoring carries the most weight (22%), followed by field goal percentage (12%), rebounding (15%), and assists (13%). Rebounding and assist benchmarks adjust automatically based on the position you set at the top of the file.
+
+The Efficiency Index adds together points, rebounds, assists, steals, and blocks, then subtracts turnovers and missed field goals — a simple measure of overall contribution per game.

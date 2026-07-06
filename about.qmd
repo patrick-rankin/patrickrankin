@@ -1,0 +1,42 @@
+---
+title: "About"
+subtitle: "The person behind the numbers"
+---
+
+```{=html}
+<div style="display: flex; align-items: flex-start; gap: 2rem; margin-bottom: 2rem; flex-wrap: wrap;">
+  <img
+    src="images/WIN_20260615_07_20_16_Pro.jpg"
+    alt="Author photo"
+    style="width: 200px; height: 200px; object-fit: cover; border-radius: 50%;
+           border: 4px solid #e8a020; box-shadow: 0 4px 18px rgba(10,22,40,0.18);
+           flex-shrink: 0;"
+  />
+  <div style="flex: 1; min-width: 220px;">
+    <h2 style="margin-top: 0;">College Basketball Report</h2>
+    <p>
+      This site is a personal data journalism project focused on college and
+      professional basketball. Every post is built from raw game-by-game data —
+      no box-score summaries, no recycled narratives. Just the data, visualized
+      and interpreted.
+    </p>
+    <p>
+      A basketball fan who believes the best stories in sports are hiding in the
+      data. Built this site to share those stories publicly.
+    </p>
+  </div>
+</div>
+```
+
+## The Stack
+
+| Tool | Purpose |
+|---|---|
+| **R** | Data ingestion, wrangling, and visualization (`tidyverse`, `ggplot2`) |
+| **Quarto** | Rendering and publishing |
+| **GitHub Pages** | Hosting |
+| **ESPN API** | Game-by-game data source |
+
+---
+
+> Questions, feedback, or data requests? Reach out on GitHub.

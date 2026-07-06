@@ -1,0 +1,307 @@
+---
+title: "NHL Team Season Grade Report"
+author: "Pat Rankin"
+format: html
+editor: visual
+execute:
+  message: false
+  warning: false
+---
+
+```{r}
+#| label: packages
+
+ install.packages("pak")
+ pak::pak("sportsdataverse/hockeyR")
+ install.packages("dplyr")
+ install.packages("ggplot2")
+ install.packages("tidyr")
+
+library(hockeyR)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+```
+
+## ⚙️ Your Settings — Change These Before Rendering
+
+```{r}
+#| label: settings
+
+# ============================================================
+#  FILL IN YOUR INFO BELOW — this is the only section
+#  you need to change each time you run this report.
+# ============================================================
+
+# Which NHL team do you want to grade?
+# Use the 3-letter team abbreviation ESPN / NHL use.
+# Examples: "BOS", "NYR", "TOR", "EDM", "COL", "VGK", "TBL"
+# Not sure of yours? Run:  hockeyR::team_logos_colors %>% select(team_abbr, full_team_name) %>% print(n=40)
+my_team <- "BOS"
+
+# Which season? Use the year the season STARTS.
+# Example: the 2024-25 season is written as 2024.
+season_year <- 2024
+
+# Season label shown in the report (for display only)
+season_label <- "2024-25"
+
+# ============================================================
+#  THAT'S IT — scroll down to render and read your report.
+# ============================================================
+```
+
+```{r}
+#| label: ingest
+#| include: false
+
+# Load play-by-play and aggregate to game-level team stats
+pbp <- hockeyR::load_pbp(seasons = season_year)
+
+# Get final scores per game
+game_scores <- pbp %>%
+  group_by(game_id, home_abbreviation, away_abbreviation) %>%
+  summarise(
+    home_goals = max(home_final, na.rm = TRUE),
+    away_goals = max(away_final, na.rm = TRUE),
+    home_shots = sum(event_type %in% c("SHOT","GOAL") & team == home_abbreviation, na.rm = TRUE),
+    away_shots = sum(event_type %in% c("SHOT","GOAL") & team == away_abbreviation, na.rm = TRUE),
+    home_pp_goals = sum(event_type == "GOAL" & team == home_abbreviation &
+                          strength_code %in% c("PP","PP2"), na.rm = TRUE),
+    away_pp_goals = sum(event_type == "GOAL" & team == away_abbreviation &
+                          strength_code %in% c("PP","PP2"), na.rm = TRUE),
+    home_pp_opps = sum(event_type == "PENALTY" & team == away_abbreviation, na.rm = TRUE),
+    away_pp_opps = sum(event_type == "PENALTY" & team == home_abbreviation, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Home games
+home_games <- game_scores %>%
+  filter(home_abbreviation == my_team) %>%
+  transmute(
+    game_id,
+    team_goals   = home_goals,
+    opp_goals    = away_goals,
+    team_shots   = home_shots,
+    opp_shots    = away_shots,
+    pp_goals     = home_pp_goals,
+    pp_opps      = home_pp_opps,
+    pk_goals_against = away_pp_goals,
+    pk_opps      = away_pp_opps,
+    won          = home_goals > away_goals
+  )
+
+# Away games
+away_games <- game_scores %>%
+  filter(away_abbreviation == my_team) %>%
+  transmute(
+    game_id,
+    team_goals   = away_goals,
+    opp_goals    = home_goals,
+    team_shots   = away_shots,
+    opp_shots    = home_shots,
+    pp_goals     = away_pp_goals,
+    pp_opps      = away_pp_opps,
+    pk_goals_against = home_pp_goals,
+    pk_opps      = home_pp_opps,
+    won          = away_goals > home_goals
+  )
+
+team_data <- bind_rows(home_games, away_games)
+
+if (nrow(team_data) == 0) stop("No games found for '", my_team, "'. Check the abbreviation.")
+
+# Look up full team name
+team_name_full <- tryCatch(
+  hockeyR::team_logos_colors %>%
+    filter(team_abbr == my_team) %>%
+    pull(full_team_name) %>% first(),
+  error = function(e) my_team
+)
+
+games_played <- nrow(team_data)
+wins         <- sum(team_data$won, na.rm = TRUE)
+losses       <- games_played - wins
+win_pct      <- wins / games_played * 100
+```
+
+```{r}
+#| label: averages
+#| include: false
+
+avg <- team_data %>%
+  mutate(
+    pp_pct = ifelse(pp_opps > 0, pp_goals / pp_opps * 100, NA),
+    pk_pct = ifelse(pk_opps > 0, (1 - pk_goals_against / pk_opps) * 100, NA),
+    shot_diff = team_shots - opp_shots
+  ) %>%
+  summarise(
+    goals_for    = mean(team_goals,  na.rm = TRUE),
+    goals_against = mean(opp_goals,  na.rm = TRUE),
+    shots_for    = mean(team_shots,  na.rm = TRUE),
+    shots_against = mean(opp_shots,  na.rm = TRUE),
+    pp_pct       = mean(pp_pct,      na.rm = TRUE),
+    pk_pct       = mean(pk_pct,      na.rm = TRUE),
+    shot_diff    = mean(shot_diff,   na.rm = TRUE)
+  )
+```
+
+```{r}
+#| label: grading
+#| include: false
+
+score_to_letter <- function(score) {
+  if      (score >= 4.0) "A+"
+  else if (score >= 3.7) "A"
+  else if (score >= 3.3) "A-"
+  else if (score >= 3.0) "B+"
+  else if (score >= 2.7) "B"
+  else if (score >= 2.3) "B-"
+  else if (score >= 2.0) "C+"
+  else if (score >= 1.7) "C"
+  else if (score >= 1.3) "C-"
+  else if (score >= 1.0) "D+"
+  else if (score >= 0.7) "D"
+  else if (score >= 0.3) "D-"
+  else                   "F"
+}
+
+grade_stat <- function(value, thresholds, lower_is_better = FALSE) {
+  if (lower_is_better) {
+    if      (value <= thresholds["A"]) gpa <- 4.0
+    else if (value <= thresholds["B"]) gpa <- 3.0
+    else if (value <= thresholds["C"]) gpa <- 2.0
+    else if (value <= thresholds["D"]) gpa <- 1.0
+    else                               gpa <- 0.0
+  } else {
+    if      (value >= thresholds["A"]) gpa <- 4.0
+    else if (value >= thresholds["B"]) gpa <- 3.0
+    else if (value >= thresholds["C"]) gpa <- 2.0
+    else if (value >= thresholds["D"]) gpa <- 1.0
+    else                               gpa <- 0.0
+  }
+  score_to_letter(gpa)
+}
+
+letter_to_gpa <- function(l) {
+  switch(l,
+    "A+"=4.3,"A"=4.0,"A-"=3.7,
+    "B+"=3.3,"B"=3.0,"B-"=2.7,
+    "C+"=2.3,"C"=2.0,"C-"=1.7,
+    "D+"=1.3,"D"=1.0,"D-"=0.7,"F"=0.0)
+}
+
+# Benchmarks: NHL league averages (2024-25 season)
+grade_offense   <- grade_stat(avg$goals_for,    c(A=3.4, B=3.1, C=2.8, D=2.5))
+grade_defense   <- grade_stat(avg$goals_against, c(A=2.5, B=2.8, C=3.1, D=3.4), lower_is_better=TRUE)
+grade_shots     <- grade_stat(avg$shots_for,    c(A=34,  B=31,  C=28,  D=25))
+grade_shot_supp <- grade_stat(avg$shots_against, c(A=25,  B=28,  C=31,  D=34),  lower_is_better=TRUE)
+grade_pp        <- grade_stat(avg$pp_pct,        c(A=24,  B=21,  C=18,  D=15))
+grade_pk        <- grade_stat(avg$pk_pct,        c(A=85,  B=82,  C=79,  D=76))
+grade_win_pct   <- grade_stat(win_pct,           c(A=62,  B=55,  C=48,  D=40))
+
+all_grades <- c(grade_offense, grade_defense, grade_shots,
+                grade_shot_supp, grade_pp, grade_pk, grade_win_pct)
+weights    <- c(0.20, 0.20, 0.12, 0.12, 0.14, 0.12, 0.10)
+
+overall_gpa   <- sum(sapply(all_grades, letter_to_gpa) * weights)
+overall_grade <- score_to_letter(overall_gpa)
+
+grade_df <- data.frame(
+  Category = c("Offense (GF/G)","Defense (GA/G)","Shots For","Shots Against",
+               "Power Play %","Penalty Kill %","Win %"),
+  Grade    = all_grades,
+  GPA      = sapply(all_grades, letter_to_gpa)
+)
+
+grade_df$Grade_Group <- case_when(
+  grade_df$GPA >= 3.7 ~ "A",
+  grade_df$GPA >= 2.7 ~ "B",
+  grade_df$GPA >= 1.7 ~ "C",
+  grade_df$GPA >= 0.7 ~ "D",
+  TRUE                ~ "F"
+)
+```
+
+## `r team_name_full` — `r season_label` Season Report
+
+**Record:** `r wins`-`r losses` (`r sprintf("%.1f", win_pct)`% win rate) \| **Games Graded:** `r games_played`
+
+**Overall Season Grade: `r overall_grade`**
+
+------------------------------------------------------------------------
+
+## Category Grades
+
+```{r}
+#| label: grade-chart
+
+grade_colors <- c("A"="#2ecc71","B"="#3498db","C"="#f39c12","D"="#e67e22","F"="#e74c3c")
+
+ggplot(grade_df, aes(x = reorder(Category, GPA), y = GPA, fill = Grade_Group)) +
+  geom_col(width = 0.7) +
+  geom_text(aes(label = Grade), hjust = -0.2, fontface = "bold", size = 4.5) +
+  scale_fill_manual(values = grade_colors, name = "Grade") +
+  scale_y_continuous(limits = c(0, 5.2), breaks = c(0,1,2,3,4)) +
+  coord_flip() +
+  labs(
+    title    = paste(team_name_full, "— Category Grades"),
+    subtitle = paste(season_label, "NHL Season"),
+    x        = NULL,
+    y        = "Grade Points (4.0 scale)"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "right")
+```
+
+## Goals Scored vs. Goals Allowed Per Game
+
+```{r}
+#| label: goals-trend
+
+trend_data <- team_data %>%
+  mutate(game_num = row_number(),
+         result   = ifelse(won, "Win", "Loss"))
+
+ggplot(trend_data, aes(x = game_num)) +
+  geom_line(aes(y = team_goals), color = "#2ecc71", linewidth = 1) +
+  geom_line(aes(y = opp_goals),  color = "#e74c3c", linewidth = 1, linetype = "dashed") +
+  geom_point(aes(y = team_goals, color = result), size = 2.5) +
+  scale_color_manual(values = c("Win"="#2ecc71","Loss"="#e74c3c"), name = "Result") +
+  geom_hline(yintercept = avg$goals_for,    linetype="dotted", color="#2ecc71", linewidth=0.7) +
+  geom_hline(yintercept = avg$goals_against, linetype="dotted", color="#e74c3c", linewidth=0.7) +
+  labs(
+    title    = paste(team_name_full, "— Goals Per Game"),
+    subtitle = "Green = goals for  |  Red dashed = goals against  |  Dotted = season averages",
+    x        = "Game Number", y = "Goals"
+  ) +
+  theme_minimal(base_size = 13)
+```
+
+## Key Stats Summary
+
+```{r}
+#| label: stats-table
+
+summary_tbl <- data.frame(
+  Statistic = c("Goals Per Game","Goals Against Per Game","Shots Per Game",
+                "Shots Against Per Game","Power Play %","Penalty Kill %",
+                "Shot Differential","Win %"),
+  Value     = c(
+    sprintf("%.2f", avg$goals_for),
+    sprintf("%.2f", avg$goals_against),
+    sprintf("%.1f", avg$shots_for),
+    sprintf("%.1f", avg$shots_against),
+    sprintf("%.1f%%", avg$pp_pct),
+    sprintf("%.1f%%", avg$pk_pct),
+    sprintf("%+.1f", avg$shot_diff),
+    sprintf("%.1f%%", win_pct)
+  )
+)
+
+knitr::kable(summary_tbl, align = c("l","r"), col.names = c("Statistic","Season Avg"))
+```
+
+## How the Grade Is Calculated
+
+Each category is graded against NHL league averages and weighted into an overall score on a 4.0 scale. Offense and defense (goals for/against) each carry 20% of the overall grade. Power play percentage carries 14% because special teams are a major driver of NHL success.

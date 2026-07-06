@@ -1,0 +1,148 @@
+---
+title: "New York Knicks"
+subtitle: "2025\u201326 NBA Season Team Statistics"
+date: today
+format:
+  html:
+    toc: true
+    toc-title: "On This Page"
+    code-fold: true
+    code-summary: "Show Code"
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(scales)
+
+# ── Update this path when the CSV is available ──────────────────────────────
+# team <- read_csv("C:/Users/Pat/Desktop/basketball_script/nba_data/team_stats/team_NYK_2026.csv", show_col_types = FALSE) |>
+#   mutate(
+#     game_date   = as.Date(game_date, "%m/%d/%Y"),
+#     team_winner = as.logical(team_winner),
+#     result      = if_else(team_winner, "Win", "Loss"),
+#     point_diff  = team_score - opponent_team_score,
+#     game_label  = paste0(format(game_date, "%b %d"), " vs ", opponent_team_short_display_name)
+#   ) |>
+#   arrange(game_date)
+
+team_primary   <- "#006BB6"
+team_secondary <- "#F58426"
+win_color      <- team_primary
+loss_color     <- "#c0392b"
+```
+
+## Season Overview
+
+The **New York Knicks** had an eventful 2025\u201326 NBA season. Below is a data-driven breakdown of their performance across key statistical categories.
+
+::: {.callout-note appearance="minimal"}
+**Record:** — | **Avg Points:** — PPG | **FG%:** —% | **Rebounds:** — RPG | **Assists:** — APG
+:::
+
+> Add narrative context about the team\u2019s season here once data is loaded.
+
+---
+
+## Shooting Efficiency vs. Points Scored {#shooting}
+
+The scatterplot below examines the relationship between field goal percentage and points scored each game, colored by win or loss.
+
+```{r scatterplot, fig.width=9, fig.height=5.5}
+# Uncomment after loading data:
+# ggplot(team, aes(x = field_goal_pct, y = team_score, color = result)) +
+#   geom_vline(xintercept = 50, linetype = "dashed", color = "gray60", linewidth = 0.6) +
+#   geom_point(size = 3.5, alpha = 0.85) +
+#   geom_smooth(aes(group = 1), method = "lm", se = TRUE,
+#               color = "gray30", fill = "gray85", linewidth = 0.8) +
+#   scale_color_manual(values = c("Win" = win_color, "Loss" = loss_color)) +
+#   scale_x_continuous(labels = function(x) paste0(x, "%")) +
+#   labs(
+#     title    = "Field Goal % vs. Points Scored",
+#     subtitle = "New York Knicks | 2025\u201326 NBA Season",
+#     x = "Field Goal Percentage", y = "Points Scored", color = "Result",
+#     caption = "Dashed line at 50% FG | Trend line across all games"
+#   ) +
+#   theme_minimal(base_size = 13) +
+#   theme(plot.title = element_text(face = "bold", color = team_primary),
+#         plot.subtitle = element_text(color = "gray40"),
+#         legend.position = "top", panel.grid.minor = element_blank())
+
+message("Data not yet loaded — uncomment the plot code above after adding the CSV.")
+```
+
+> **Insight:** Add shooting efficiency insights here after reviewing the data.
+
+---
+
+## Points Scored Per Game {#scoring}
+
+A game-by-game look at scoring output across the season, colored by result.
+
+```{r scoring-chart, fig.width=10, fig.height=5.5}
+# Uncomment after loading data:
+# team |>
+#   mutate(game_label = fct_inorder(game_label)) |>
+#   ggplot(aes(x = game_label, y = team_score, fill = result)) +
+#   geom_col(width = 0.75) +
+#   geom_hline(yintercept = mean(team$team_score), linetype = "dashed",
+#              color = "gray30", linewidth = 0.7) +
+#   scale_fill_manual(values = c("Win" = win_color, "Loss" = loss_color)) +
+#   scale_y_continuous(expand = expansion(mult = c(0, 0.05))) +
+#   labs(
+#     title    = "Points Scored Per Game",
+#     subtitle = "New York Knicks | 2025\u201326 NBA Season",
+#     x = NULL, y = "Points Scored", fill = "Result",
+#     caption = "Dashed line = season average"
+#   ) +
+#   theme_minimal(base_size = 12) +
+#   theme(plot.title = element_text(face = "bold", color = team_primary),
+#         plot.subtitle = element_text(color = "gray40"),
+#         axis.text.x = element_text(angle = 55, hjust = 1, size = 8),
+#         legend.position = "top",
+#         panel.grid.major.x = element_blank(), panel.grid.minor = element_blank())
+
+message("Data not yet loaded — uncomment the plot code above after adding the CSV.")
+```
+
+> **Insight:** Add scoring trend insights here after reviewing the data.
+
+---
+
+## Assists vs. Turnovers {#ball-movement}
+
+Comparing ball movement and ball security on a game-by-game basis.
+
+```{r ast-tov-chart, fig.width=10, fig.height=5.5}
+# Uncomment after loading data:
+# team |>
+#   select(game_label, game_date, assists, turnovers, result) |>
+#   pivot_longer(cols = c(assists, turnovers), names_to = "stat", values_to = "value") |>
+#   mutate(game_label = fct_reorder(game_label, game_date), stat = str_to_title(stat)) |>
+#   ggplot(aes(x = game_label, y = value, fill = stat)) +
+#   geom_col(position = "dodge", width = 0.7) +
+#   scale_fill_manual(values = c("Assists" = team_primary, "Turnovers" = team_secondary)) +
+#   scale_y_continuous(expand = expansion(mult = c(0, 0.05))) +
+#   labs(
+#     title    = "Assists vs. Turnovers Per Game",
+#     subtitle = "New York Knicks | 2025\u201326 NBA Season",
+#     x = NULL, y = "Count", fill = NULL,
+#     caption = "Games in chronological order"
+#   ) +
+#   theme_minimal(base_size = 12) +
+#   theme(plot.title = element_text(face = "bold", color = team_primary),
+#         plot.subtitle = element_text(color = "gray40"),
+#         axis.text.x = element_text(angle = 55, hjust = 1, size = 8),
+#         legend.position = "top",
+#         panel.grid.major.x = element_blank(), panel.grid.minor = element_blank())
+
+message("Data not yet loaded — uncomment the plot code above after adding the CSV.")
+```
+
+> **Insight:** Add ball movement insights here after reviewing the data.
+
+---
+
+## Key Takeaways
+
+Add your season summary and key statistical takeaways here once the data is loaded and the visuals are reviewed.
+

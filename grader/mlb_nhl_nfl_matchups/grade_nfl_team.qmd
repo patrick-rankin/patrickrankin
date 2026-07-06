@@ -1,0 +1,342 @@
+---
+title: "NFL Team Season Grade Report"
+author: "Pat Rankin"
+format: html
+editor: visual
+execute:
+  message: false
+  warning: false
+---
+
+```{r}
+#| label: packages
+
+# install.packages("nflreadr")
+# install.packages("dplyr")
+# install.packages("ggplot2")
+# install.packages("tidyr")
+
+library(nflreadr)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+```
+
+## ⚙️ Your Settings — Change These Before Rendering
+
+```{r}
+#| label: settings
+
+# ============================================================
+#  FILL IN YOUR INFO BELOW — this is the only section
+#  you need to change each time you run this report.
+# ============================================================
+
+# Which NFL team do you want to grade?
+# Use the 2-3 letter team abbreviation.
+# Examples: "NE", "KC", "DAL", "SF", "BUF", "PHI", "MIA", "LAR"
+# Not sure? Run: nflreadr::load_teams() %>% select(team_abbr, team_name) %>% print(n=40)
+my_team <- "KC"
+
+# Which season? NFL uses the year the season STARTS.
+# Example: the 2024-25 season is written as 2024.
+season_year <- 2024
+
+# Season label shown in the report (for display only)
+season_label <- "2024-25"
+
+# Include playoffs? TRUE = regular season + playoffs, FALSE = regular season only
+include_playoffs <- FALSE
+
+# ============================================================
+#  THAT'S IT — scroll down to render and read your report.
+# ============================================================
+```
+
+```{r}
+#| label: ingest
+#| include: false
+
+schedules <- nflreadr::load_schedules(seasons = season_year)
+
+if (!include_playoffs) {
+  schedules <- schedules %>% filter(game_type == "REG")
+}
+
+# Home games
+home_games <- schedules %>%
+  filter(home_team == my_team, !is.na(home_score)) %>%
+  transmute(
+    game_id,
+    week,
+    opponent     = away_team,
+    team_score   = home_score,
+    opp_score    = away_score,
+    won          = home_score > away_score,
+    home_away    = "Home"
+  )
+
+# Away games
+away_games <- schedules %>%
+  filter(away_team == my_team, !is.na(away_score)) %>%
+  transmute(
+    game_id,
+    week,
+    opponent     = home_team,
+    team_score   = away_score,
+    opp_score    = home_score,
+    won          = away_score > home_score,
+    home_away    = "Away"
+  )
+
+team_data <- bind_rows(home_games, away_games) %>% arrange(week)
+
+if (nrow(team_data) == 0) stop("No games found for '", my_team, "'. Check the abbreviation.")
+
+# Pull offensive and defensive team stats from play-by-play
+pbp <- nflreadr::load_pbp(seasons = season_year)
+
+if (!include_playoffs) {
+  pbp <- pbp %>% filter(season_type == "REG")
+}
+
+# Offensive stats (when team is posteam)
+off_stats <- pbp %>%
+  filter(posteam == my_team, !is.na(yards_gained)) %>%
+  group_by(game_id) %>%
+  summarise(
+    pass_yards  = sum(passing_yards, na.rm = TRUE),
+    rush_yards  = sum(rushing_yards, na.rm = TRUE),
+    turnovers   = sum(interception + fumble_lost, na.rm = TRUE),
+    sacks_taken = sum(sack, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Defensive stats (when team is defteam)
+def_stats <- pbp %>%
+  filter(defteam == my_team, !is.na(yards_gained)) %>%
+  group_by(game_id) %>%
+  summarise(
+    sacks_made  = sum(sack, na.rm = TRUE),
+    def_tov     = sum(interception + fumble_lost, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+team_data <- team_data %>%
+  left_join(off_stats, by = "game_id") %>%
+  left_join(def_stats, by = "game_id")
+
+team_name_full <- nflreadr::load_teams() %>%
+  filter(team_abbr == my_team) %>%
+  pull(team_name) %>% first()
+
+games_played <- nrow(team_data)
+wins         <- sum(team_data$won, na.rm = TRUE)
+losses       <- games_played - wins
+win_pct      <- wins / games_played * 100
+```
+
+```{r}
+#| label: averages
+#| include: false
+
+avg <- team_data %>%
+  summarise(
+    pts_for     = mean(team_score,   na.rm = TRUE),
+    pts_against = mean(opp_score,    na.rm = TRUE),
+    pass_yards  = mean(pass_yards,   na.rm = TRUE),
+    rush_yards  = mean(rush_yards,   na.rm = TRUE),
+    turnovers   = mean(turnovers,    na.rm = TRUE),
+    sacks_taken = mean(sacks_taken,  na.rm = TRUE),
+    sacks_made  = mean(sacks_made,   na.rm = TRUE),
+    def_tov     = mean(def_tov,      na.rm = TRUE),
+    pt_diff     = mean(team_score - opp_score, na.rm = TRUE),
+    total_yards = mean(pass_yards + rush_yards, na.rm = TRUE)
+  )
+```
+
+```{r}
+#| label: grading
+#| include: false
+
+score_to_letter <- function(score) {
+  if      (score >= 4.0) "A+"
+  else if (score >= 3.7) "A"
+  else if (score >= 3.3) "A-"
+  else if (score >= 3.0) "B+"
+  else if (score >= 2.7) "B"
+  else if (score >= 2.3) "B-"
+  else if (score >= 2.0) "C+"
+  else if (score >= 1.7) "C"
+  else if (score >= 1.3) "C-"
+  else if (score >= 1.0) "D+"
+  else if (score >= 0.7) "D"
+  else if (score >= 0.3) "D-"
+  else                   "F"
+}
+
+grade_stat <- function(value, thresholds, lower_is_better = FALSE) {
+  if (is.na(value)) return("N/A")
+  if (lower_is_better) {
+    if      (value <= thresholds["A"]) gpa <- 4.0
+    else if (value <= thresholds["B"]) gpa <- 3.0
+    else if (value <= thresholds["C"]) gpa <- 2.0
+    else if (value <= thresholds["D"]) gpa <- 1.0
+    else                               gpa <- 0.0
+  } else {
+    if      (value >= thresholds["A"]) gpa <- 4.0
+    else if (value >= thresholds["B"]) gpa <- 3.0
+    else if (value >= thresholds["C"]) gpa <- 2.0
+    else if (value >= thresholds["D"]) gpa <- 1.0
+    else                               gpa <- 0.0
+  }
+  score_to_letter(gpa)
+}
+
+letter_to_gpa <- function(l) {
+  if (l == "N/A") return(NA_real_)
+  switch(l,
+    "A+"=4.3,"A"=4.0,"A-"=3.7,
+    "B+"=3.3,"B"=3.0,"B-"=2.7,
+    "C+"=2.3,"C"=2.0,"C-"=1.7,
+    "D+"=1.3,"D"=1.0,"D-"=0.7,"F"=0.0)
+}
+
+# Benchmarks: NFL per-game averages (2024 season)
+grade_scoring   <- grade_stat(avg$pts_for,    c(A=28, B=24, C=20, D=17))
+grade_defense   <- grade_stat(avg$pts_against, c(A=17, B=20, C=24, D=28), lower_is_better=TRUE)
+grade_passing   <- grade_stat(avg$pass_yards, c(A=280, B=245, C=210, D=175))
+grade_rushing   <- grade_stat(avg$rush_yards, c(A=145, B=120, C=95,  D=75))
+grade_off_tov   <- grade_stat(avg$turnovers,  c(A=0.8, B=1.2, C=1.6, D=2.2), lower_is_better=TRUE)
+grade_sacks     <- grade_stat(avg$sacks_made,  c(A=3.5, B=2.7, C=2.0, D=1.3))
+grade_def_tov   <- grade_stat(avg$def_tov,    c(A=2.0, B=1.5, C=1.0, D=0.6))
+grade_win_pct   <- grade_stat(win_pct,        c(A=70, B=60, C=50, D=38))
+
+all_grades <- c(grade_scoring, grade_defense, grade_passing, grade_rushing,
+                grade_off_tov, grade_sacks, grade_def_tov, grade_win_pct)
+weights    <- c(0.18, 0.18, 0.12, 0.10, 0.12, 0.10, 0.10, 0.10)
+
+valid      <- !is.na(sapply(all_grades, letter_to_gpa))
+overall_gpa   <- weighted.mean(sapply(all_grades, letter_to_gpa)[valid], weights[valid])
+overall_grade <- score_to_letter(overall_gpa)
+
+grade_df <- data.frame(
+  Category = c("Scoring","Defense (pts allowed)","Passing Yards",
+               "Rushing Yards","Turnovers (off)","Sacks (def)",
+               "Takeaways (def)","Win %"),
+  Grade    = all_grades,
+  GPA      = sapply(all_grades, letter_to_gpa)
+) %>% filter(!is.na(GPA))
+
+grade_df$Grade_Group <- case_when(
+  grade_df$GPA >= 3.7 ~ "A",
+  grade_df$GPA >= 2.7 ~ "B",
+  grade_df$GPA >= 1.7 ~ "C",
+  grade_df$GPA >= 0.7 ~ "D",
+  TRUE                ~ "F"
+)
+```
+
+## `r team_name_full` — `r season_label` Season Report
+
+**Record:** `r wins`-`r losses` (`r sprintf("%.1f", win_pct)`% win rate) | **Point Differential:** `r sprintf("%+.1f", avg$pt_diff)` per game | **Games Graded:** `r games_played`
+
+**Overall Season Grade: `r overall_grade`**
+
+---
+
+## Category Grades
+
+```{r}
+#| label: grade-chart
+
+grade_colors <- c("A"="#2ecc71","B"="#3498db","C"="#f39c12","D"="#e67e22","F"="#e74c3c")
+
+ggplot(grade_df, aes(x = reorder(Category, GPA), y = GPA, fill = Grade_Group)) +
+  geom_col(width = 0.7) +
+  geom_text(aes(label = Grade), hjust = -0.2, fontface = "bold", size = 4.5) +
+  scale_fill_manual(values = grade_colors, name = "Grade") +
+  scale_y_continuous(limits = c(0, 5.2), breaks = c(0,1,2,3,4)) +
+  coord_flip() +
+  labs(
+    title    = paste(team_name_full, "— Category Grades"),
+    subtitle = paste(season_label, "NFL Season"),
+    x        = NULL,
+    y        = "Grade Points (4.0 scale)"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "right")
+```
+
+## Scoring Trend
+
+```{r}
+#| label: scoring-trend
+
+trend_data <- team_data %>%
+  mutate(result = ifelse(won, "Win", "Loss"))
+
+ggplot(trend_data, aes(x = week)) +
+  geom_line(aes(y = team_score), color = "#2ecc71", linewidth = 1) +
+  geom_line(aes(y = opp_score),  color = "#e74c3c", linewidth = 1, linetype = "dashed") +
+  geom_point(aes(y = team_score, color = result), size = 3) +
+  scale_color_manual(values = c("Win"="#2ecc71","Loss"="#e74c3c"), name = "Result") +
+  geom_hline(yintercept = avg$pts_for, linetype="dotted", color="#2ecc71", linewidth=0.7) +
+  labs(
+    title    = paste(team_name_full, "— Points Scored by Week"),
+    subtitle = "Green = points for  |  Red dashed = points against  |  Dotted = season average",
+    x        = "Week", y = "Points"
+  ) +
+  theme_minimal(base_size = 13)
+```
+
+## Yards Per Game: Passing vs. Rushing
+
+```{r}
+#| label: yards-chart
+
+yards_long <- team_data %>%
+  select(week, pass_yards, rush_yards) %>%
+  pivot_longer(cols = c(pass_yards, rush_yards), names_to = "Type", values_to = "Yards") %>%
+  mutate(Type = recode(Type, pass_yards="Passing", rush_yards="Rushing"))
+
+ggplot(yards_long, aes(x = week, y = Yards, color = Type)) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 2) +
+  scale_color_manual(values = c("Passing"="#3498db","Rushing"="#e67e22")) +
+  labs(
+    title    = paste(team_name_full, "— Yards Per Game by Week"),
+    x        = "Week", y = "Yards", color = NULL
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "top")
+```
+
+## Key Stats Summary
+
+```{r}
+#| label: stats-table
+
+summary_tbl <- data.frame(
+  Statistic = c("Points Per Game","Points Allowed Per Game","Point Differential",
+                "Passing Yards Per Game","Rushing Yards Per Game","Total Yards Per Game",
+                "Turnovers Per Game","Sacks Per Game (defense)","Takeaways Per Game"),
+  Value     = c(
+    sprintf("%.1f", avg$pts_for),
+    sprintf("%.1f", avg$pts_against),
+    sprintf("%+.1f", avg$pt_diff),
+    sprintf("%.1f", avg$pass_yards),
+    sprintf("%.1f", avg$rush_yards),
+    sprintf("%.1f", avg$total_yards),
+    sprintf("%.2f", avg$turnovers),
+    sprintf("%.2f", avg$sacks_made),
+    sprintf("%.2f", avg$def_tov)
+  )
+)
+
+knitr::kable(summary_tbl, align = c("l","r"), col.names = c("Statistic","Season Avg"))
+```
+
+## How the Grade Is Calculated
+
+Each category is graded against NFL per-game averages and weighted into an overall score on a 4.0 scale. Scoring and defense each carry 18% of the grade since points are the ultimate NFL currency. Turnover margin (both offensive turnovers and defensive takeaways) accounts for a combined 22%, reflecting how heavily turnovers drive NFL outcomes.
