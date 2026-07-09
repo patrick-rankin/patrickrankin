@@ -28,6 +28,12 @@ subtitle: "Browse every college basketball team covered on Classroom to Court"
     <span class="team-meta">ACC</span>
   </a>
 
+  <a class="team-card" data-name="michigan state spartans" href="ncaa/michigan-state/index.html">
+    <div class="team-badge" style="background:#18453B; color:#ffffff;">MSU</div>
+    <span class="team-name">Michigan State Spartans</span>
+    <span class="team-meta">Big Ten</span>
+  </a>
+
 </div>
 
 <p class="teams-empty" id="teamsEmpty">No teams match your search.</p>
