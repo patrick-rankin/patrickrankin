@@ -41,13 +41,13 @@ season_year <- 2026
 # team. If you're not sure, run the NAME CHECK code near the bottom of this
 # script first, and it will print all the team names available so you can
 # copy/paste the exact one you want.
-my_team <- "Lakers"
+my_team <- 'Celtics'
 
 # <<< PUT YOUR FOLDER NAME HERE >>>
 # This is the folder where the CSV file will be saved.
 # It will be created automatically if it doesn't already exist.
 # Use a FULL path with forward slashes, e.g. "C:/Users/you/Documents/nba_data"
-output_folder <- "PUT_FOLDER_NAME_HERE"
+output_folder <- "C:/Users/Pat/Desktop/nba_data/team_stats"
 
 
 ###############################################################################

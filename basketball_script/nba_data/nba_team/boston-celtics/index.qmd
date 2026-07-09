@@ -14,15 +14,16 @@ format:
 library(tidyverse)
 library(scales)
 
-team <- read_csv("C:/Users/Pat/Desktop/nba_data/team_stats/nba_team_Celtics_2026.csv", show_col_types = FALSE) |>
-  mutate(
-    game_date   = as.Date(game_date, "%Y-%m-%d"),
-    team_winner = as.logical(team_winner),
-    result      = if_else(team_winner, "Win", "Loss"),
-    point_diff  = team_score - opponent_team_score,
-    game_label  = paste0(format(game_date, "%b %d"), " vs ", opponent_team_short_display_name)
-  ) |>
-  arrange(game_date)
+# ── Update this path when the CSV is available ──────────────────────────────
+# team <- read_csv("C:/Users/Pat/Desktop/basketball_script/nba_data/team_stats/team_BOS_2026.csv", show_col_types = FALSE) |>
+#   mutate(
+#     game_date   = as.Date(game_date, "%m/%d/%Y"),
+#     team_winner = as.logical(team_winner),
+#     result      = if_else(team_winner, "Win", "Loss"),
+#     point_diff  = team_score - opponent_team_score,
+#     game_label  = paste0(format(game_date, "%b %d"), " vs ", opponent_team_short_display_name)
+#   ) |>
+#   arrange(game_date)
 
 team_primary   <- "#007A33"
 team_secondary <- "#BA9653"
