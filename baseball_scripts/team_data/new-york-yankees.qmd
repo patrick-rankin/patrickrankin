@@ -1,0 +1,217 @@
+---
+title: "New York Yankees"
+subtitle: "2024 MLB Postseason"
+date: today
+format:
+  html:
+    toc: true
+    toc-title: "On This Page"
+    code-fold: true
+    code-summary: "Show Code"
+execute:
+  message: false
+  warning: false
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(lubridate)
+library(scales)
+
+# NOTE: bref_team_results() scrapes standings columns (Rank, GB) that only
+# exist for regular-season games. Every game in this file is a postseason
+# game, so those two columns are blank on Baseball Reference and the
+# remaining trailing columns (winning/losing/save pitcher, time, day/night,
+# attendance) shift two slots to the left into the Rank/GB/Win/Loss/Save/Time
+# header names. We rename them here to what they actually contain.
+team <- read_csv(
+    "C:/Users/Pat/Desktop/website/baseball_scripts/team_data/mlb_team_NYY_2024.csv",
+    show_col_types = FALSE
+  ) |>
+  rename(
+    winning_pitcher = Rank,
+    losing_pitcher  = GB,
+    save_pitcher    = Win,
+    game_time       = Loss,
+    day_night       = Save,
+    attendance_raw  = Time
+  ) |>
+  mutate(
+    stage       = str_extract(Gm, "^[A-Z]+"),
+    game_num    = as.integer(str_extract(Gm, "\\d+$")),
+    stage       = factor(stage, levels = c("ALDS", "ALCS", "WS")),
+    clean_date  = str_remove(Date, "^[A-Za-z]+,\\s*"),
+    game_date   = mdy(paste(clean_date, "2024")),
+    result      = if_else(Result == "W", "Win", "Loss"),
+    run_diff    = R - RA,
+    attendance  = as.numeric(str_remove_all(attendance_raw, ",")),
+    went_extras = !is.na(Inn) & Inn != "NA",
+    game_label  = paste0(stage, " G", game_num),
+    cum_wins    = map_int(str_split(Record, "-"), ~ as.integer(.x[1])),
+    cum_losses  = map_int(str_split(Record, "-"), ~ as.integer(.x[2]))
+  ) |>
+  arrange(game_date) |>
+  mutate(game_label = fct_inorder(game_label))
+
+team_primary   <- "#0C2340"
+team_secondary <- "#C4CED4"
+win_color      <- team_primary
+loss_color     <- "#C0392B"
+```
+
+```{r series-summary, include=FALSE}
+series_summary <- team |>
+  group_by(stage) |>
+  summarise(
+    wins     = sum(result == "Win"),
+    losses   = sum(result == "Loss"),
+    opponent = first(Opp),
+    .groups  = "drop"
+  ) |>
+  arrange(stage) |>
+  mutate(record = paste0(wins, "-", losses))
+
+alds_record <- series_summary$record[series_summary$stage == "ALDS"]
+alcs_record <- series_summary$record[series_summary$stage == "ALCS"]
+ws_record   <- series_summary$record[series_summary$stage == "WS"]
+alds_opp    <- series_summary$opponent[series_summary$stage == "ALDS"]
+alcs_opp    <- series_summary$opponent[series_summary$stage == "ALCS"]
+ws_opp      <- series_summary$opponent[series_summary$stage == "WS"]
+
+overall_wins   <- sum(team$result == "Win")
+overall_losses <- sum(team$result == "Loss")
+runs_scored    <- sum(team$R)
+runs_allowed   <- sum(team$RA)
+extra_games    <- sum(team$went_extras)
+```
+
+## Season Overview
+
+The **New York Yankees'** 2024 season ran all the way to the World Series before ending in a loss to the Dodgers. Below is a game-by-game breakdown of their full postseason run.
+
+::: {.callout-note appearance="minimal"}
+**Postseason Record:** `r overall_wins`-`r overall_losses` | **Runs Scored:** `r runs_scored` | **Runs Allowed:** `r runs_allowed` | **Run Differential:** `r sprintf("%+d", runs_scored - runs_allowed)` | **Extra-Inning Games:** `r extra_games`
+:::
+
+> Beat the `r alds_opp` `r alds_record` in the ALDS, beat the `r alcs_opp` `r alcs_record` in the ALCS, then fell to the `r ws_opp` `r ws_record` in the World Series.
+
+---
+
+## Series-by-Series Results {#series}
+
+```{r series-table}
+knitr::kable(
+  series_summary,
+  col.names = c("Round", "Wins", "Losses", "Opponent", "Record"),
+  align = c("l", "r", "r", "l", "r")
+)
+```
+
+---
+
+## Runs Scored vs. Runs Allowed by Game {#runs}
+
+```{r runs-chart, fig.width=10, fig.height=5.5}
+team |>
+  select(game_label, R, RA) |>
+  pivot_longer(cols = c(R, RA), names_to = "type", values_to = "runs") |>
+  mutate(type = recode(type, R = "Runs Scored", RA = "Runs Allowed")) |>
+  ggplot(aes(x = game_label, y = runs, fill = type)) +
+  geom_col(position = "dodge", width = 0.7) +
+  scale_fill_manual(values = c("Runs Scored" = win_color, "Runs Allowed" = loss_color)) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.08))) +
+  labs(
+    title    = "Runs Scored vs. Runs Allowed",
+    subtitle = "New York Yankees | 2024 Postseason",
+    x = NULL, y = "Runs", fill = NULL,
+    caption = "Games in chronological order, grouped by round"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(plot.title = element_text(face = "bold", color = team_primary),
+        plot.subtitle = element_text(color = "gray40"),
+        axis.text.x = element_text(angle = 55, hjust = 1, size = 8),
+        legend.position = "top",
+        panel.grid.major.x = element_blank(), panel.grid.minor = element_blank())
+```
+
+> **Insight:** The Yankees' offense disappeared in the World Series, averaging just `r round(mean(team$R[team$stage == "WS"]), 1)` runs per game against the Dodgers versus `r round(mean(team$R[team$stage != "WS"]), 1)` runs per game in the ALDS and ALCS combined.
+
+---
+
+## Cumulative Win/Loss Record {#record}
+
+```{r record-chart, fig.width=10, fig.height=5.5}
+team |>
+  select(game_label, cum_wins, cum_losses) |>
+  pivot_longer(cols = c(cum_wins, cum_losses), names_to = "type", values_to = "count") |>
+  mutate(type = recode(type, cum_wins = "Wins", cum_losses = "Losses")) |>
+  ggplot(aes(x = game_label, y = count, color = type, group = type)) +
+  geom_line(linewidth = 1.1) +
+  geom_point(size = 2.5) +
+  scale_color_manual(values = c("Wins" = win_color, "Losses" = loss_color)) +
+  labs(
+    title    = "Cumulative Postseason Record",
+    subtitle = "New York Yankees | 2024 Postseason",
+    x = NULL, y = "Games", color = NULL
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(plot.title = element_text(face = "bold", color = team_primary),
+        plot.subtitle = element_text(color = "gray40"),
+        axis.text.x = element_text(angle = 55, hjust = 1, size = 8),
+        legend.position = "top",
+        panel.grid.major.x = element_blank(), panel.grid.minor = element_blank())
+```
+
+---
+
+## Attendance by Game {#attendance}
+
+```{r attendance-chart, fig.width=10, fig.height=5.5}
+ggplot(team, aes(x = game_label, y = attendance, fill = stage)) +
+  geom_col(width = 0.7) +
+  scale_fill_manual(values = c("ALDS" = team_secondary, "ALCS" = team_primary, "WS" = loss_color)) +
+  scale_y_continuous(labels = comma, expand = expansion(mult = c(0, 0.08))) +
+  labs(
+    title    = "Attendance by Game",
+    subtitle = "New York Yankees | 2024 Postseason",
+    x = NULL, y = "Attendance", fill = "Round"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(plot.title = element_text(face = "bold", color = team_primary),
+        plot.subtitle = element_text(color = "gray40"),
+        axis.text.x = element_text(angle = 55, hjust = 1, size = 8),
+        legend.position = "top",
+        panel.grid.major.x = element_blank(), panel.grid.minor = element_blank())
+```
+
+---
+
+## Key Stats Summary
+
+```{r stats-table}
+summary_tbl <- tibble(
+  Statistic = c("Games Played", "Record", "Runs Scored", "Runs Allowed",
+                "Run Differential", "Runs Scored/Game", "Runs Allowed/Game",
+                "Extra-Inning Games", "Average Attendance", "Highest Attendance"),
+  Value = c(
+    as.character(nrow(team)),
+    paste0(overall_wins, "-", overall_losses),
+    as.character(runs_scored),
+    as.character(runs_allowed),
+    sprintf("%+d", runs_scored - runs_allowed),
+    sprintf("%.2f", mean(team$R)),
+    sprintf("%.2f", mean(team$RA)),
+    as.character(extra_games),
+    comma(round(mean(team$attendance))),
+    comma(max(team$attendance))
+  )
+)
+
+knitr::kable(summary_tbl, align = c("l", "r"), col.names = c("Statistic", "Value"))
+```
+
+---
+
+## Key Takeaways
+
+The Yankees' 2024 postseason run was carried by dominant series wins over the Royals (`r alds_record`) and Guardians (`r alcs_record`), outscoring both opponents across ten games. That offense went cold in the World Series against the Dodgers, where the Yankees managed just one win in five games and were outscored `r sum(team$RA[team$stage=="WS"])`-`r sum(team$R[team$stage=="WS"])`. `r extra_games` of the fourteen postseason games went to extra innings, underscoring how close the margins were in October.

@@ -47,7 +47,7 @@ my_team <- "Alabama State"
 # This is the folder where the CSV file will be saved.
 # It will be created automatically if it doesn't already exist.
 # Example: "ncaa_data"
-output_folder <- "C:/Users/tabea/OneDrive/Desktop/Clients/patrickr/team_stats"
+output_folder <- "C:/Users/Pat/Desktop/website/basketball_script/ncaa_data/team_stats"
 
 
 ###############################################################################

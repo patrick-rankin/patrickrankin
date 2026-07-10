@@ -1,0 +1,18 @@
+---
+title: "NHL"
+subtitle: "Hockey data ingestion and grade reports"
+---
+
+## Season Grade Reports
+
+Each report below is a self-contained R/Quarto template — open the `.qmd` source, change the team/player/season in the settings block at the top, and re-render to generate a new report.
+
+- [Team Grade Report](hockey_scripts/grade_nhl_team.html) — defaults to the Boston Bruins, 2024-25
+- [Player Grade Report](hockey_scripts/grade_nhl_player.html) — defaults to Nathan MacKinnon, 2024-25
+
+## Data Ingestion
+
+Team and player season data is pulled via the `hockeyR` package:
+
+- `hockey_scripts/01_ingest_nhl_team.R`
+- `hockey_scripts/02_ingest_nhl_player.R`

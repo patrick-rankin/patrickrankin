@@ -8,7 +8,7 @@
 
 <meta name="dcterms.date" content="2026-07-10">
 
-<title>Atlanta Hawks – Classroom to Court</title>
+<title>New York Yankees – Classroom to Court</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -176,9 +176,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
    
   <ul>
   <li><a href="#season-overview" id="toc-season-overview" class="nav-link active" data-scroll-target="#season-overview">Season Overview</a></li>
-  <li><a href="#shooting" id="toc-shooting" class="nav-link" data-scroll-target="#shooting">Shooting Efficiency vs.&nbsp;Points Scored</a></li>
-  <li><a href="#scoring" id="toc-scoring" class="nav-link" data-scroll-target="#scoring">Points Scored Per Game</a></li>
-  <li><a href="#ball-movement" id="toc-ball-movement" class="nav-link" data-scroll-target="#ball-movement">Assists vs.&nbsp;Turnovers</a></li>
+  <li><a href="#series" id="toc-series" class="nav-link" data-scroll-target="#series">Series-by-Series Results</a></li>
+  <li><a href="#runs" id="toc-runs" class="nav-link" data-scroll-target="#runs">Runs Scored vs.&nbsp;Runs Allowed by Game</a></li>
+  <li><a href="#record" id="toc-record" class="nav-link" data-scroll-target="#record">Cumulative Win/Loss Record</a></li>
+  <li><a href="#attendance" id="toc-attendance" class="nav-link" data-scroll-target="#attendance">Attendance by Game</a></li>
+  <li><a href="#key-stats-summary" id="toc-key-stats-summary" class="nav-link" data-scroll-target="#key-stats-summary">Key Stats Summary</a></li>
   <li><a href="#key-takeaways" id="toc-key-takeaways" class="nav-link" data-scroll-target="#key-takeaways">Key Takeaways</a></li>
   </ul>
 </nav>
@@ -188,8 +190,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Atlanta Hawks</h1>
-<p class="subtitle lead">2025–26 NBA Season Team Statistics</p>
+<h1 class="title">New York Yankees</h1>
+<p class="subtitle lead">2024 MLB Postseason</p>
 </div>
 
 
@@ -214,139 +216,260 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="season-overview" class="level2">
 <h2 class="anchored" data-anchor-id="season-overview">Season Overview</h2>
-<p>The <strong>Atlanta Hawks</strong> had an eventful 202501326 NBA season. Below is a data-driven breakdown of their performance across key statistical categories.</p>
+<p>The <strong>New York Yankees’</strong> 2024 season ran all the way to the World Series before ending in a loss to the Dodgers. Below is a game-by-game breakdown of their full postseason run.</p>
 <div class="callout callout-style-simple callout-note no-icon">
 <div class="callout-body d-flex">
 <div class="callout-icon-container">
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-body-container">
-<p><strong>Record:</strong> — | <strong>Avg Points:</strong> — PPG | <strong>FG%:</strong> —% | <strong>Rebounds:</strong> — RPG | <strong>Assists:</strong> — APG</p>
+<p><strong>Postseason Record:</strong> 8-6 | <strong>Runs Scored:</strong> 67 | <strong>Runs Allowed:</strong> 57 | <strong>Run Differential:</strong> +10 | <strong>Extra-Inning Games:</strong> 3</p>
 </div>
 </div>
 </div>
 <blockquote class="blockquote">
-<p>Add narrative context about the team019s season here once data is loaded.</p>
+<p>Beat the KCR 3-1 in the ALDS, beat the CLE 4-1 in the ALCS, then fell to the LAD 1-4 in the World Series.</p>
 </blockquote>
 <hr>
 </section>
-<section id="shooting" class="level2">
-<h2 class="anchored" data-anchor-id="shooting">Shooting Efficiency vs.&nbsp;Points Scored</h2>
-<p>The scatterplot below examines the relationship between field goal percentage and points scored each game, colored by win or loss.</p>
+<section id="series" class="level2">
+<h2 class="anchored" data-anchor-id="series">Series-by-Series Results</h2>
 <div class="cell">
 <details class="code-fold">
 <summary>Show Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Uncomment after loading data:</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># ggplot(team, aes(x = field_goal_pct, y = team_score, color = result)) +</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co">#   geom_vline(xintercept = 50, linetype = "dashed", color = "gray60", linewidth = 0.6) +</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">#   geom_point(size = 3.5, alpha = 0.85) +</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co">#   geom_smooth(aes(group = 1), method = "lm", se = TRUE,</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co">#               color = "gray30", fill = "gray85", linewidth = 0.8) +</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co">#   scale_color_manual(values = c("Win" = win_color, "Loss" = loss_color)) +</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co">#   scale_x_continuous(labels = function(x) paste0(x, "%")) +</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co">#   labs(</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co">#     title    = "Field Goal % vs. Points Scored",</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co">#     subtitle = "Atlanta Hawks | 2025\u201326 NBA Season",</span></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co">#     x = "Field Goal Percentage", y = "Points Scored", color = "Result",</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co">#     caption = "Dashed line at 50% FG | Trend line across all games"</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co">#   ) +</span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co">#   theme_minimal(base_size = 13) +</span></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="co">#   theme(plot.title = element_text(face = "bold", color = team_primary),</span></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="co">#         plot.subtitle = element_text(color = "gray40"),</span></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="co">#         legend.position = "top", panel.grid.minor = element_blank())</span></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="fu">message</span>(<span class="st">"Data not yet loaded — uncomment the plot code above after adding the CSV."</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  series_summary,</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Round"</span>, <span class="st">"Wins"</span>, <span class="st">"Losses"</span>, <span class="st">"Opponent"</span>, <span class="st">"Record"</span>),</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">align =</span> <span class="fu">c</span>(<span class="st">"l"</span>, <span class="st">"r"</span>, <span class="st">"r"</span>, <span class="st">"l"</span>, <span class="st">"r"</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div class="cell-output cell-output-stderr">
-<pre><code>Data not yet loaded — uncomment the plot code above after adding the CSV.</code></pre>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Round</th>
+<th style="text-align: right;">Wins</th>
+<th style="text-align: right;">Losses</th>
+<th style="text-align: left;">Opponent</th>
+<th style="text-align: right;">Record</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">ALDS</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: left;">KCR</td>
+<td style="text-align: right;">3-1</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">ALCS</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: left;">CLE</td>
+<td style="text-align: right;">4-1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">WS</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: left;">LAD</td>
+<td style="text-align: right;">1-4</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<hr>
+</section>
+<section id="runs" class="level2">
+<h2 class="anchored" data-anchor-id="runs">Runs Scored vs.&nbsp;Runs Allowed by Game</h2>
+<div class="cell">
+<details class="code-fold">
+<summary>Show Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>team <span class="sc">|&gt;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(game_label, R, RA) <span class="sc">|&gt;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">c</span>(R, RA), <span class="at">names_to =</span> <span class="st">"type"</span>, <span class="at">values_to =</span> <span class="st">"runs"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">type =</span> <span class="fu">recode</span>(type, <span class="at">R =</span> <span class="st">"Runs Scored"</span>, <span class="at">RA =</span> <span class="st">"Runs Allowed"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> game_label, <span class="at">y =</span> runs, <span class="at">fill =</span> type)) <span class="sc">+</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">position =</span> <span class="st">"dodge"</span>, <span class="at">width =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Runs Scored"</span> <span class="ot">=</span> win_color, <span class="st">"Runs Allowed"</span> <span class="ot">=</span> loss_color)) <span class="sc">+</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.08</span>))) <span class="sc">+</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">title    =</span> <span class="st">"Runs Scored vs. Runs Allowed"</span>,</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"New York Yankees | 2024 Postseason"</span>,</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="st">"Runs"</span>, <span class="at">fill =</span> <span class="cn">NULL</span>,</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">caption =</span> <span class="st">"Games in chronological order, grouped by round"</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">12</span>) <span class="sc">+</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>, <span class="at">color =</span> team_primary),</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.subtitle =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"gray40"</span>),</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">55</span>, <span class="at">hjust =</span> <span class="dv">1</span>, <span class="at">size =</span> <span class="dv">8</span>),</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.position =</span> <span class="st">"top"</span>,</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>        <span class="at">panel.grid.major.x =</span> <span class="fu">element_blank</span>(), <span class="at">panel.grid.minor =</span> <span class="fu">element_blank</span>())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="new-york-yankees_files/figure-html/runs-chart-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
 </div>
 </div>
 <blockquote class="blockquote">
-<p><strong>Insight:</strong> Add shooting efficiency insights here after reviewing the data.</p>
+<p><strong>Insight:</strong> The Yankees’ offense disappeared in the World Series, averaging just 4.8 runs per game against the Dodgers versus 4.8 runs per game in the ALDS and ALCS combined.</p>
 </blockquote>
 <hr>
 </section>
-<section id="scoring" class="level2">
-<h2 class="anchored" data-anchor-id="scoring">Points Scored Per Game</h2>
-<p>A game-by-game look at scoring output across the season, colored by result.</p>
+<section id="record" class="level2">
+<h2 class="anchored" data-anchor-id="record">Cumulative Win/Loss Record</h2>
 <div class="cell">
 <details class="code-fold">
 <summary>Show Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Uncomment after loading data:</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co"># team |&gt;</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co">#   mutate(game_label = fct_inorder(game_label)) |&gt;</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co">#   ggplot(aes(x = game_label, y = team_score, fill = result)) +</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co">#   geom_col(width = 0.75) +</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co">#   geom_hline(yintercept = mean(team$team_score), linetype = "dashed",</span></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co">#              color = "gray30", linewidth = 0.7) +</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="co">#   scale_fill_manual(values = c("Win" = win_color, "Loss" = loss_color)) +</span></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="co">#   scale_y_continuous(expand = expansion(mult = c(0, 0.05))) +</span></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="co">#   labs(</span></span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="co">#     title    = "Points Scored Per Game",</span></span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="co">#     subtitle = "Atlanta Hawks | 2025\u201326 NBA Season",</span></span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="co">#     x = NULL, y = "Points Scored", fill = "Result",</span></span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="co">#     caption = "Dashed line = season average"</span></span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="co">#   ) +</span></span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="co">#   theme_minimal(base_size = 12) +</span></span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="co">#   theme(plot.title = element_text(face = "bold", color = team_primary),</span></span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="co">#         plot.subtitle = element_text(color = "gray40"),</span></span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="co">#         axis.text.x = element_text(angle = 55, hjust = 1, size = 8),</span></span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="co">#         legend.position = "top",</span></span>
-<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="co">#         panel.grid.major.x = element_blank(), panel.grid.minor = element_blank())</span></span>
-<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a><span class="fu">message</span>(<span class="st">"Data not yet loaded — uncomment the plot code above after adding the CSV."</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>team <span class="sc">|&gt;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(game_label, cum_wins, cum_losses) <span class="sc">|&gt;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">c</span>(cum_wins, cum_losses), <span class="at">names_to =</span> <span class="st">"type"</span>, <span class="at">values_to =</span> <span class="st">"count"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">type =</span> <span class="fu">recode</span>(type, <span class="at">cum_wins =</span> <span class="st">"Wins"</span>, <span class="at">cum_losses =</span> <span class="st">"Losses"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> game_label, <span class="at">y =</span> count, <span class="at">color =</span> type, <span class="at">group =</span> type)) <span class="sc">+</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="fl">1.1</span>) <span class="sc">+</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="fl">2.5</span>) <span class="sc">+</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Wins"</span> <span class="ot">=</span> win_color, <span class="st">"Losses"</span> <span class="ot">=</span> loss_color)) <span class="sc">+</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">title    =</span> <span class="st">"Cumulative Postseason Record"</span>,</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"New York Yankees | 2024 Postseason"</span>,</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="st">"Games"</span>, <span class="at">color =</span> <span class="cn">NULL</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">12</span>) <span class="sc">+</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>, <span class="at">color =</span> team_primary),</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.subtitle =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"gray40"</span>),</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">55</span>, <span class="at">hjust =</span> <span class="dv">1</span>, <span class="at">size =</span> <span class="dv">8</span>),</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.position =</span> <span class="st">"top"</span>,</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>        <span class="at">panel.grid.major.x =</span> <span class="fu">element_blank</span>(), <span class="at">panel.grid.minor =</span> <span class="fu">element_blank</span>())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div class="cell-output cell-output-stderr">
-<pre><code>Data not yet loaded — uncomment the plot code above after adding the CSV.</code></pre>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="new-york-yankees_files/figure-html/record-chart-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
 </div>
 </div>
-<blockquote class="blockquote">
-<p><strong>Insight:</strong> Add scoring trend insights here after reviewing the data.</p>
-</blockquote>
+</div>
 <hr>
 </section>
-<section id="ball-movement" class="level2">
-<h2 class="anchored" data-anchor-id="ball-movement">Assists vs.&nbsp;Turnovers</h2>
-<p>Comparing ball movement and ball security on a game-by-game basis.</p>
+<section id="attendance" class="level2">
+<h2 class="anchored" data-anchor-id="attendance">Attendance by Game</h2>
 <div class="cell">
 <details class="code-fold">
 <summary>Show Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Uncomment after loading data:</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co"># team |&gt;</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co">#   select(game_label, game_date, assists, turnovers, result) |&gt;</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co">#   pivot_longer(cols = c(assists, turnovers), names_to = "stat", values_to = "value") |&gt;</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co">#   mutate(game_label = fct_reorder(game_label, game_date), stat = str_to_title(stat)) |&gt;</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co">#   ggplot(aes(x = game_label, y = value, fill = stat)) +</span></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co">#   geom_col(position = "dodge", width = 0.7) +</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="co">#   scale_fill_manual(values = c("Assists" = team_primary, "Turnovers" = team_secondary)) +</span></span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="co">#   scale_y_continuous(expand = expansion(mult = c(0, 0.05))) +</span></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="co">#   labs(</span></span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="co">#     title    = "Assists vs. Turnovers Per Game",</span></span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="co">#     subtitle = "Atlanta Hawks | 2025\u201326 NBA Season",</span></span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="co">#     x = NULL, y = "Count", fill = NULL,</span></span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="co">#     caption = "Games in chronological order"</span></span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="co">#   ) +</span></span>
-<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="co">#   theme_minimal(base_size = 12) +</span></span>
-<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a><span class="co">#   theme(plot.title = element_text(face = "bold", color = team_primary),</span></span>
-<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a><span class="co">#         plot.subtitle = element_text(color = "gray40"),</span></span>
-<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a><span class="co">#         axis.text.x = element_text(angle = 55, hjust = 1, size = 8),</span></span>
-<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a><span class="co">#         legend.position = "top",</span></span>
-<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a><span class="co">#         panel.grid.major.x = element_blank(), panel.grid.minor = element_blank())</span></span>
-<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a><span class="fu">message</span>(<span class="st">"Data not yet loaded — uncomment the plot code above after adding the CSV."</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(team, <span class="fu">aes</span>(<span class="at">x =</span> game_label, <span class="at">y =</span> attendance, <span class="at">fill =</span> stage)) <span class="sc">+</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">width =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"ALDS"</span> <span class="ot">=</span> team_secondary, <span class="st">"ALCS"</span> <span class="ot">=</span> team_primary, <span class="st">"WS"</span> <span class="ot">=</span> loss_color)) <span class="sc">+</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> comma, <span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.08</span>))) <span class="sc">+</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">title    =</span> <span class="st">"Attendance by Game"</span>,</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"New York Yankees | 2024 Postseason"</span>,</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="st">"Attendance"</span>, <span class="at">fill =</span> <span class="st">"Round"</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">12</span>) <span class="sc">+</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>, <span class="at">color =</span> team_primary),</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.subtitle =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"gray40"</span>),</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">55</span>, <span class="at">hjust =</span> <span class="dv">1</span>, <span class="at">size =</span> <span class="dv">8</span>),</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.position =</span> <span class="st">"top"</span>,</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>        <span class="at">panel.grid.major.x =</span> <span class="fu">element_blank</span>(), <span class="at">panel.grid.minor =</span> <span class="fu">element_blank</span>())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div class="cell-output cell-output-stderr">
-<pre><code>Data not yet loaded — uncomment the plot code above after adding the CSV.</code></pre>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="new-york-yankees_files/figure-html/attendance-chart-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
 </div>
 </div>
-<blockquote class="blockquote">
-<p><strong>Insight:</strong> Add ball movement insights here after reviewing the data.</p>
-</blockquote>
+</div>
+<hr>
+</section>
+<section id="key-stats-summary" class="level2">
+<h2 class="anchored" data-anchor-id="key-stats-summary">Key Stats Summary</h2>
+<div class="cell">
+<details class="code-fold">
+<summary>Show Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>summary_tbl <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">Statistic =</span> <span class="fu">c</span>(<span class="st">"Games Played"</span>, <span class="st">"Record"</span>, <span class="st">"Runs Scored"</span>, <span class="st">"Runs Allowed"</span>,</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>                <span class="st">"Run Differential"</span>, <span class="st">"Runs Scored/Game"</span>, <span class="st">"Runs Allowed/Game"</span>,</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>                <span class="st">"Extra-Inning Games"</span>, <span class="st">"Average Attendance"</span>, <span class="st">"Highest Attendance"</span>),</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Value =</span> <span class="fu">c</span>(</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.character</span>(<span class="fu">nrow</span>(team)),</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">paste0</span>(overall_wins, <span class="st">"-"</span>, overall_losses),</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.character</span>(runs_scored),</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.character</span>(runs_allowed),</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sprintf</span>(<span class="st">"%+d"</span>, runs_scored <span class="sc">-</span> runs_allowed),</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sprintf</span>(<span class="st">"%.2f"</span>, <span class="fu">mean</span>(team<span class="sc">$</span>R)),</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sprintf</span>(<span class="st">"%.2f"</span>, <span class="fu">mean</span>(team<span class="sc">$</span>RA)),</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.character</span>(extra_games),</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">comma</span>(<span class="fu">round</span>(<span class="fu">mean</span>(team<span class="sc">$</span>attendance))),</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">comma</span>(<span class="fu">max</span>(team<span class="sc">$</span>attendance))</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(summary_tbl, <span class="at">align =</span> <span class="fu">c</span>(<span class="st">"l"</span>, <span class="st">"r"</span>), <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Statistic"</span>, <span class="st">"Value"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Statistic</th>
+<th style="text-align: right;">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Games Played</td>
+<td style="text-align: right;">14</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Record</td>
+<td style="text-align: right;">8-6</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Runs Scored</td>
+<td style="text-align: right;">67</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Runs Allowed</td>
+<td style="text-align: right;">57</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Run Differential</td>
+<td style="text-align: right;">+10</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Runs Scored/Game</td>
+<td style="text-align: right;">4.79</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Runs Allowed/Game</td>
+<td style="text-align: right;">4.07</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Extra-Inning Games</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Average Attendance</td>
+<td style="text-align: right;">44,565</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Highest Attendance</td>
+<td style="text-align: right;">52,725</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <hr>
 </section>
 <section id="key-takeaways" class="level2">
 <h2 class="anchored" data-anchor-id="key-takeaways">Key Takeaways</h2>
-<p>Add your season summary and key statistical takeaways here once the data is loaded and the visuals are reviewed.</p>
+<p>The Yankees’ 2024 postseason run was carried by dominant series wins over the Royals (3-1) and Guardians (4-1), outscoring both opponents across ten games. That offense went cold in the World Series against the Dodgers, where the Yankees managed just one win in five games and were outscored 25-24. 3 of the fourteen postseason games went to extra innings, underscoring how close the margins were in October.</p>
 
 
 </section>

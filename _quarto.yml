@@ -21,6 +21,14 @@ website:
         text: NCAA
       - href: nba-teams.qmd
         text: NBA
+      - href: mlb.qmd
+        text: MLB
+      - href: nfl.qmd
+        text: NFL
+      - href: nhl.qmd
+        text: NHL
+      - href: matchups.qmd
+        text: Matchups
       - href: about.qmd
         text: About
   page-footer:

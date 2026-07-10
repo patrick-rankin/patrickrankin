@@ -1,0 +1,9 @@
+---
+title: "Matchups"
+subtitle: "Head-to-head team and player comparisons across every sport"
+---
+
+These reports compare two teams or two players side by side — works across NBA, NCAA, NFL, NHL, and MLB. Open the `.qmd` source, set both sides of the matchup in the settings block at the top, and re-render.
+
+- [Team Matchup Report](mlb_nhl_nfl_matchups/matchup_team.html)
+- [Player Matchup Report](mlb_nhl_nfl_matchups/matchup_player.html)

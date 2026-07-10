@@ -1,0 +1,22 @@
+---
+title: "MLB"
+subtitle: "Baseball data ingestion and grade reports"
+---
+
+## Season Grade Reports
+
+Each report below is a self-contained R/Quarto template — open the `.qmd` source, change the team/player/season in the settings block at the top, and re-render to generate a new report.
+
+- [Team Grade Report](baseball_scripts/grade_mlb_team.html) — defaults to the New York Yankees, 2024
+- [Player Grade Report](baseball_scripts/grade_mlb_player.html) — defaults to Aaron Judge, 2024
+
+## Team Spotlight
+
+- [New York Yankees — 2024 Postseason](baseball_scripts/team_data/new-york-yankees.html)
+
+## Data Ingestion
+
+Team and player season data is pulled from Baseball Reference and FanGraphs via the `baseballr` package:
+
+- `baseball_scripts/01_ingest_mlb_team.R`
+- `baseball_scripts/02_ingest_mlb_player.R`

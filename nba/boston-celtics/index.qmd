@@ -14,7 +14,7 @@ format:
 library(tidyverse)
 library(scales)
 
-team <- read_csv("C:/Users/Pat/Desktop/nba_data/team_stats/nba_team_Celtics_2026.csv", show_col_types = FALSE) |>
+team <- read_csv("C:/Users/Pat/Desktop/website/nba_data/team_stats/nba_team_Celtics_2026.csv", show_col_types = FALSE) |>
   mutate(
     game_date   = as.Date(game_date, "%Y-%m-%d"),
     team_winner = as.logical(team_winner),
